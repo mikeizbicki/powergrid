@@ -3,7 +3,7 @@
 # returns the updated system state at the next time step
 
 function [delta1,omega1,theta1] = propogate(M,D,K_I,K_P,B_GG,B_GL,B_LG,B_LL,P_L,delta,omega,theta,K_L)
-    F=[zeros(rows(K_I),columns(K_I)), eye(rows(K_P)), zeros(rows(B_GL),columns(B_GL));
+    F=0.01*[zeros(rows(K_I),columns(K_I)), eye(rows(K_P)), zeros(rows(B_GL),columns(B_GL));
        inv(M)*(K_I-B_GG)            , inv(M)*(K_P-D), -inv(M)*B_GL                   ;
        B_LG                         , -K_L          , B_LL                           ];
     G=eye(rows(delta)+rows(omega)+rows(theta))+F;
@@ -67,39 +67,7 @@ endfunction
 ########################################
 
 function x1hat=filterUpdate(y1, x0hat, P0, Q, f, lambda, reg)
-    g = @(x) norm(y1-x) + lambda1*norm(f(x0hat)-x) + lambda2*reg(x);
+    g = @(x) norm(y1-x) + norm(f(x0hat)-x) + lambda*reg(x);
     x1hat = fminunc(g,x0hat);
 endfunction
 
-################################################################################
-# some test data
-
-numgen=6;
-numload=17;
-B_density=0.5;
-rand("seed",0);
-
-M=diag(rand(numgen,1));
-D=diag(rand(numgen,1));
-#K_I=diag(rand(numgen,1));
-#K_P=diag(rand(numgen,1));
-K_I=eye(numgen);
-K_P=eye(numgen);
-
-K_L=zeros(numload,numgen);
-#K_L=sprand(numload,numgen,1/numload/numgen);
-
-B_GG=sprand(numgen ,numgen ,B_density);
-B_GL=sprand(numgen ,numload,B_density);
-B_LG=sprand(numload,numgen ,B_density);
-B_LL=sprand(numload,numload,B_density);
-B=[B_GG,B_GL;B_LG,B_LL];
-
-delta=rand(numgen,1);
-omega=rand(numgen,1);
-theta=rand(numload,1);
-
-P_L=rand(numload,1);
-
-#[delta1,omega1,theta1]=propogate(M,D,K_I,K_P,B_GG,B_GL,B_LG,B_LL,P_L,delta,omega,theta,K_L);
-[deltaN,omegaN,thetaN]=propogateN(M,D,K_I,K_P,B_GG,B_GL,B_LG,B_LL,P_L,delta,omega,theta,K_L,5);
