@@ -25,18 +25,21 @@ endfunction
 
 ################################################################################
 #
-# Samples a trajectory from a constrained (possibly) nonlinear system
+# Samples a trajectory from a (possibly) nonlinear system
 #
 ################################################################################
-function X=sample(x0, Q, f, cnst, n)
-    X=[];
+function X=sample(x0, Q, f, n)
+    X=zeros(rows(x0),n);
     for i=1:n
-        fx0=f(x0);
+        fx0=f(i)(x0);
         #x1=fx0;
-        x1=fmincnst(@(x) norm(x-fx0),fx0, @(x) cnst(i)(x));
-        #x1=fmincnst(@(x) norm(x-fx0),f(x0), @(x) cnst(i)(x))+mvnrnd(zeros(rows(x0),1),Q)';
-        X=[X,x1];
+        x1=fx0+mvnrnd(zeros(rows(x0),1),Q)';
+        X(:,i)=x1;
         x0=x1;
+
+        if max(abs(x0))>10
+            break;
+        endif
     endfor
 endfunction
 
