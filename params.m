@@ -6,3 +6,4 @@ rand("seed",0);
 randn('seed',0);
 
 indicator = @(x) x>0;
+
