@@ -32,8 +32,16 @@ P_L = @(n) P_L0+(indicator(n>attackTime)*[0;0;0.7;0;0;0]);
 
 K_L = sparse([4],[1],[10],numload,numgen);
 
-delta0=zeros(numgen,1);
-omega0=zeros(numgen,1);
-theta0=zeros(numload,1);
+#delta0=zeros(numgen,1);
+#omega0=zeros(numgen,1);
+#theta0=zeros(numload,1);
+
+delta0=[-0.034466; 0.020581;-0.051547];
+omega0=[-0.165154; 0.102456;-0.248189];
+theta0=[ 0.060740; 0.131104; 0.099074; 0.168979; 0.142341; 0.141706];
+
+attackTime=100;
+totalTime=1000;
+stepsize=0.001;
 
 source("mkDynamics.m");

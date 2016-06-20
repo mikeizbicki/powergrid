@@ -1,0 +1,56 @@
+#
+# Run the filter to estimate the K_L from the data
+#
+
+lambda=1e-8;
+startTime=attackTime-10
+stopTime=startTime+100
+
+rangeKL=numgen*2+numload+1:numgen*2+numload+numgen*numload;
+
+########################################
+# run filtering
+
+Xhat=zeros(numgen*2+numload+numgen*numload,totalTime);
+fminOptions=optimset('MaxIter',50);
+
+for i=startTime:stopTime
+
+    disp(i);
+    fflush(stdout);
+
+    # get the next observation
+    y1=[X(:,i);zeros(numgen*numload,1)];
+    xhat0=Xhat(:,i-1);
+
+    # perform the filtering
+    g = @(x) norm(extractDOT(y1-dynamicsKL(i)(x)),2) + lambda*norm(extractKL(x),1) ;
+    Xhat(:,i) = fminunc(g,x0hat,fminOptions);
+
+    #f = @(x) norm(extractDOT(y1-dynamicsKL(i)([y1;x])),2) + lambda*norm(x,1) ;
+    #K_L1 = fminunc(f,extractKL(x0hat),fminOptions);
+    #Xhat(:,i) = [y1;K_l1];
+
+    # debug print loss
+    disp(g(Xhat(:,i)));
+
+    # remove negatives
+    for j=numgen*2+numload+1:numgen*2+numload+numgen*numload
+        Xhat(j,i) = max(0,Xhat(j,i));
+    endfor
+
+    # emphasize K_L
+    #Xhat(startKL:stopKL,i)*=100;
+    #Xhat(startKL:stopKL,i)=min(Xhat(startKL:stopKL,i),10);
+
+    # take the softmax
+    #alpha=10;
+    #denom=sum(sum(exp(1).^(alpha*extractKL(Xhat(:,i)))));
+    #startKL=numgen*2+numload+1;
+    #stopKL=numgen*2+numload+numgen*numload;
+    #Xhat(startKL:stopKL,i)=exp(1).^(alpha*Xhat(startKL:stopKL,1))/denom.-1/denom;
+
+endfor
+
+
+plotFilter

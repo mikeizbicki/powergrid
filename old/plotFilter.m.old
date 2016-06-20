@@ -1,0 +1,16 @@
+#
+# plots a graph of filtering results
+#
+
+[attackLoad,attackGen]=find(K_L~=0);
+
+time=linspace(0,totalTime*stepsize,totalTime);
+plot(time(startTime:stopTime),X   '(startTime:stopTime,numgen*2+attackLoad)            ,"1"
+    ,time(startTime:stopTime),Xhat'(startTime:stopTime,numgen*2+attackLoad)            ,"1."
+    ,time(startTime:stopTime),X   '(startTime:stopTime,numgen  +attackGen)             ,"2"
+    ,time(startTime:stopTime),Xhat'(startTime:stopTime,numgen  +attackGen)             ,"2."
+    ,time(startTime:stopTime),Xhat'(startTime:stopTime,numgen*2+numload+1:numgen*2+numload+numgen*numload)    ,"3"
+    )
+
+l1reg(Xhat(:,stopTime-5))
+
