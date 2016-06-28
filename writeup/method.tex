@@ -105,9 +105,9 @@ set $K^L_{t+1} = \text{softmax}(K^L_t)$.
 The softmax ensures that only the most important components of the matrix are kept, but that we don't lose important information (e.g. the presence of multiple attacks, or an accidental mistake where the wrong component gets a high initial value).
 
 \begin{figure}
-\includegraphics[width=0.3\textwidth]{example1-states}
-\includegraphics[width=0.3\textwidth]{example1-K_L}
-\includegraphics[width=0.3\textwidth]{example1-K_L-raw}
+\includegraphics[width=0.3\textwidth]{method2a/example1-states}
+\includegraphics[width=0.3\textwidth]{method2a/example1-K_L}
+\includegraphics[width=0.3\textwidth]{method2a/example1-K_L-raw}
 \caption{
     The results of method 2a on the example with 6 loads and 3 generators.
     The attack occurs at time 0.1.
@@ -118,9 +118,9 @@ The softmax ensures that only the most important components of the matrix are ke
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=0.3\textwidth]{random-8x10x25-states}
-\includegraphics[width=0.3\textwidth]{random-8x10x25-K_L}
-\includegraphics[width=0.3\textwidth]{random-8x10x25-K_L-raw}
+\includegraphics[width=0.3\textwidth]{method2a/random-8x10x25-states}
+\includegraphics[width=0.3\textwidth]{method2a/random-8x10x25-K_L}
+\includegraphics[width=0.3\textwidth]{method2a/random-8x10x25-K_L-raw}
 \caption{
     The results of method 2a on a randomly generated power grid with 8 generators and 10 loads.
     The attack occurs at time 0.1.
@@ -150,7 +150,7 @@ but low variances better capture the non-attack times where the value of $K_t^L$
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\textwidth]{highP/highP-6}
+\includegraphics[width=0.5\textwidth]{method2b/highP-6}
 \caption{
     The figure above shows the values of $K_t^L$ in a powergrid with 15 generators and 30 loads as estimated using Solution 2b.
     The green lines indicate non-attack locations and the red lines indicate attack location.
@@ -163,12 +163,12 @@ but low variances better capture the non-attack times where the value of $K_t^L$
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\textwidth]{highP/highP-6-5attack-zeros1}
-%\includegraphics[width=0.3\textwidth]{highP/highP-6-5attack-zeros2}
-%\includegraphics[width=0.3\textwidth]{highP/highP-6-5attack-zeros3}
-%\includegraphics[width=0.3\textwidth]{highP/highP-6-5attack-zeros4}
-%\includegraphics[width=0.3\textwidth]{highP/highP-6-5attack-zeros5}
-%\includegraphics[width=0.3\textwidth]{highP/highP-6-5attack-zeros6}
+\includegraphics[width=0.5\textwidth]{method2b/highP-6-5attack-zeros1}
+%\includegraphics[width=0.3\textwidth]{method2b/highP-6-5attack-zeros2}
+%\includegraphics[width=0.3\textwidth]{method2b/highP-6-5attack-zeros3}
+%\includegraphics[width=0.3\textwidth]{method2b/highP-6-5attack-zeros4}
+%\includegraphics[width=0.3\textwidth]{method2b/highP-6-5attack-zeros5}
+%\includegraphics[width=0.3\textwidth]{method2b/highP-6-5attack-zeros6}
 \caption{
     The figures above shows the values of $K_t^L$ in a powergrid with 15 generators and 30 loads as estimated using Solution 2b.
     As before, the green lines indicate non-attack locations; the red lines indicate attack locations, and the attack occurs at time 0.1.
