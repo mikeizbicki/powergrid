@@ -7,11 +7,11 @@ source("params.m");
 ########################################
 # parameters
 
-numgen=8;
-numload=16;
+numgen=15;
+numload=30;
 B_density=0.25;
 
-numattacks=2;
+numattacks=5;
 attackTime=100;
 totalTime=1000;
 stepsize=0.001;

@@ -9,9 +9,9 @@ Xhat_safe=Xhat;
 Xhat_safe([[1:numgen*2+numload]' ;attacks],:)=[];
 Xhat_safe_max=max(Xhat_safe,[],1);
 
-semilogy(time,Xhat_safe_max'(plotStartTime:plotStopTime,:),"2"
-        ,time,Xhat_attacks' (plotStartTime:plotStopTime,:),"1"
-    )
+#semilogy(time,Xhat_safe_max'(plotStartTime:plotStopTime,:),"2"
+        #,time,Xhat_attacks' (plotStartTime:plotStopTime,:),"1"
+    #)
 
 plot(time,Xhat_safe    '(plotStartTime:plotStopTime,:),"2"
     ,time,Xhat_attacks' (plotStartTime:plotStopTime,:),"1"
