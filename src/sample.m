@@ -13,8 +13,8 @@ function X=sample(x0, Q, f, n)
     X=zeros(rows(x0),n);
     for i=1:n
         fx0=f(i)(x0);
-        #x1=fx0;
-        x1=fx0+mvnrnd(zeros(rows(x0),1),Q)';
+        x1=fx0;
+        #x1=fx0+mvnrnd(zeros(rows(x0),1),Q)';
         X(:,i)=x1;
         x0=x1;
 

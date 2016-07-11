@@ -7,13 +7,13 @@ source("params.m");
 ########################################
 # parameters
 
-numgen=15;
-numload=30;
-B_density=0.25;
+numgen=10;
+numload=12;
+B_density=0.5;
 
-numattacks=5;
+numattacks=1;
 attackTime=100;
-totalTime=1000;
+totalTime=500;
 stepsize=0.001;
 
 powerIntensity=10;
@@ -58,7 +58,7 @@ P_attack=sparse([attackLoad],[1],[1e-1],numload,1);
 ########################################
 # generate load inputs
 
-P_L0=0*powerIntensity*rand(numload,1);
+P_L0=powerIntensity*rand(numload,1);
 P_L = @(n) P_L0;
 
 powerNoise=1e-10*randn(rows(P_L0),noiseLength+smoothLength);

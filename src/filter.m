@@ -23,11 +23,11 @@ for i=1:totalTime
     # predict
     [M,P]=ukf_predict1(M,P,dynamicsKL(i));
     P=P+1e-1*eye(modelsize+KLsize);
-    P=P+[1e-3*eye(modelsize), zeros(modelsize,KLsize); zeros(KLsize,modelsize), 1e6*eye(KLsize)];
+    P=P+[1e-3*eye(modelsize), zeros(modelsize,KLsize); zeros(KLsize,modelsize), 1e2*eye(KLsize)];
 
     # update
     [M,P,K,MU,S,LH]=ukf_update1(M,P,X(:,i),@(x,k) extractDOT(x),1e-3*eye(modelsize));
-    MKL=softmax(1e3,extractKL(M));
+    #MKL=softmax(1e3,extractKL(M));
     MKL=extractKL(M);
     #MKL=arrayfun (@(x) ifelse(x>1e-10,x,0), MKL);
     M=[extractDOT(M);vec(MKL)];

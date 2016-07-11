@@ -6,3 +6,4 @@ plot(time,X'(plotStartTime:plotStopTime,1:numgen)                     ,"1" # del
     ,time,X'(plotStartTime:plotStopTime,numgen+1:numgen*2)            ,"2" # omega0
     ,time,X'(plotStartTime:plotStopTime,numgen*2+1:numgen*2+numload)  ,"3" # theta0
     )
+drawnow();

@@ -11,7 +11,10 @@ The models are stored in the `models` folder.
 To select a model, source its contents.
 
 ```
-source "models/random.m"
+source "models/ring.m"
+source "loads/gaussian.m"
+source "attacks/spike.m"
+source "mkDynamics.m"
 ```
 
 Then sample from the model by
