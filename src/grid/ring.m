@@ -11,15 +11,15 @@ global numload=gridsize;
 ########################################
 # generate grid parameters
 
-M=0.125*speye(gridsize);
-D=0.2*speye(gridsize);
-K_I=-40*speye(gridsize);
-K_P=-5*speye(gridsize);
+M=0.125*eye(gridsize);
+D=0.2*eye(gridsize);
+K_I=-40*eye(gridsize);
+K_P=-5*eye(gridsize);
 
-B_GG=-10*speye(gridsize);
-B_GL=10*speye(gridsize);
+B_GG=-10*eye(gridsize);
+B_GL=10*eye(gridsize);
 B_LG=B_GL';
-B_LL=-20*speye(gridsize);
+B_LL=-20*eye(gridsize);
 for i=[1:gridsize]
     i1=i;
     i2=mod(i-2,gridsize)+1;

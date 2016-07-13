@@ -1,4 +1,4 @@
-#! /usr/bin/octave -qf
+#! /bigdata/bioinfo/pkgadmin/opt/linux/centos/7.x/x86_64/pkgs/octave/4.0.0/bin/octave -qf
 
 addpath "./src/ekfukf"
 
@@ -19,22 +19,25 @@ addpath "./src/ekfukf"
 
 grid=argv(){1};
 gridsize=str2double(argv(){2});
-numconn=str2double(argv(){3});
-attack=argv(){4};
-load=argv(){5};
-powerObservations=argv(){6};
-kl=argv(){7};
-seed=str2num(argv(){8});
-filter=argv(){9};
+gridUpdate=argv(){3};
+numconn=str2double(argv(){4});
+attack=argv(){5};
+load=argv(){6};
+powerObservations=argv(){7};
+kl=argv(){8};
+seed=str2num(argv(){9});
+filter=argv(){10};
 
 ########################################
 
 function ret=getFilename(a)
     splt=strsplit(a,"/.");
-    ret=splt{length(splt)-1};
+    ret=splt{max(1,length(splt)-1)};
 endfunction
 
 ########################################
+
+indicator = @(x) x>0;
 
 rand("seed",seed);
 randn('seed',seed);
