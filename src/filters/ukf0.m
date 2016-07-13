@@ -17,8 +17,10 @@ for i=1:totalTime
 
     # update
     [M,P,K,MU,S,LH]=ukf_update1(M,P,X(:,i),@(x,k) extractDOT(x),R);
+    M([KLindices])=max(0,M([KLindices]));
     Xhat(:,i)=M;
 endfor
 
 source "src/plotK_L.m"
+
 

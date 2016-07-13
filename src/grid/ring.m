@@ -5,8 +5,8 @@
 ########################################
 # parameters
 
-numgen=gridsize;
-numload=gridsize;
+global numgen=gridsize;
+global numload=gridsize;
 
 ########################################
 # generate grid parameters

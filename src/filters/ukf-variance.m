@@ -25,6 +25,6 @@ for i=1:totalTime
 
 endfor
 
-source "plotK_L.m"
+source "src/plotK_L.m"
 
 

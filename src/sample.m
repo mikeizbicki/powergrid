@@ -2,8 +2,6 @@
 # Sample a trajectory from the in-scope simulation
 #
 
-source("params.m")
-
 ################################################################################
 #
 # Samples a trajectory from a (possibly) nonlinear system
@@ -27,12 +25,6 @@ endfunction
 ################################################################################
 
 x0 = [delta0;omega0;theta0];
-#P0 = 0.00*eye(numgen+numgen+numload);
+X=sample(x0,Qmodel,dynamics,totalTime);
 
-loadVariance=0;
-Q  = [ zeros(numgen*2,numgen*2), zeros(numgen*2,numload)
-     ; zeros(numload, numgen*2), loadVariance*eye(numload)
-     ];
-
-X=sample(x0,Q,dynamics,totalTime);
-source "plotX.m"
+source "src/plotX.m"
