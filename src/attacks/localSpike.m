@@ -2,9 +2,9 @@
 # Defines the attack parameters
 #
 
-numattacks=3;
+numattacks=1;
 attackTime=100;
-totalTime=1500;
+totalTime=2000;
 stepsize=0.001;
 
 ########################################

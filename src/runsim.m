@@ -1,31 +1,36 @@
-#! /bigdata/bioinfo/pkgadmin/opt/linux/centos/7.x/x86_64/pkgs/octave/4.0.0/bin/octave -qf
+#! /usr/bin/octave -qf
+##! /bigdata/bioinfo/pkgadmin/opt/linux/centos/7.x/x86_64/pkgs/octave/4.0.0/bin/octave -qf
 
 addpath "./src/ekfukf"
 
 ########################################
 
-#grid="src/grid/ring.m";
-#gridsize=20;
-#gridUpdate="src/gridUpdate/addLaplace.m";
-#numconn=100;
-#attack="src/attacks/localSpike.m";
-#load="src/loads/gaussian.m";
-#powerObservations="src/powerObservations/Observed.m";
-#kl="src/extractKL/localKL.m";
-#seed=2;
-#filter="src/filters/ukf.m";
+function ret=argv2()
+    ret=cell(10);
+    ret{1}='2';
+    #ret{2}='src/grid/ring.m';
+    ret{2}='src/grid/clusterSmallWorld.m';
+    ret{3}='10';
+    ret{4}='src/gridUpdate/addLaplace.m';
+    ret{5}='10';
+    ret{6}='src/attacks/localSpike.m';
+    ret{7}='src/loads/gaussian.m';
+    ret{8}='src/powerObservations/Observed.m';
+    ret{9}='src/extractKL/localKL.m';
+    ret{10}='src/filters/ukf.m';
+endfunction
 
 ########################################
 
-grid=argv(){1};
-gridsize=str2double(argv(){2});
-gridUpdate=argv(){3};
-numconn=str2double(argv(){4});
-attack=argv(){5};
-load=argv(){6};
-powerObservations=argv(){7};
-kl=argv(){8};
-seed=str2num(argv(){9});
+seed=str2num(argv(){1});
+grid=argv(){2};
+gridsize=str2double(argv(){3});
+gridUpdate=argv(){4};
+numconn=str2double(argv(){5});
+attack=argv(){6};
+load=argv(){7};
+powerObservations=argv(){8};
+kl=argv(){9};
 filter=argv(){10};
 
 ########################################
@@ -36,6 +41,7 @@ function ret=getFilename(a)
 endfunction
 
 ########################################
+# run simulation
 
 indicator = @(x) x>0;
 
@@ -53,8 +59,18 @@ source(powerObservations);
 source("src/mkDynamics.m");
 source(kl);
 source("src/sample.m");
-basename=['results/',getFilename(grid),'-',num2str(gridsize),'-',num2str(numconn),'-',getFilename(attack),'-',getFilename(load),'-',getFilename(powerObservations),'-',getFilename(kl),'-',num2str(seed)]
+basename=['results/',num2str(seed),'-',getFilename(grid),'-',num2str(gridsize),'-',num2str(gridUpdate),'-',num2str(numconn),'-',getFilename(attack),'-',getFilename(load),'-',getFilename(powerObservations),'-',getFilename(kl),]
 print('-color','-dpsc',[basename,'.eps']);
 source(filter);
 filename=[basename,'-',getFilename(filter),'.eps']
 print('-color','-dpsc',filename);
+
+########################################
+# output results
+
+source('src/evaluate.m');
+writecsv([basename,'-deltaThreshold.csv'],deltaThreshold);
+writecsv([basename,'-omegaThreshold.csv'],omegaThreshold);
+writecsv([basename,'-thetaThreshold.csv'],thetaThreshold);
+writecsv([basename,'-attackThreshold.csv'],attackThreshold);
+writecsv([basename,'-separation.csv'],separation);

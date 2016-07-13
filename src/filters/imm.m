@@ -51,6 +51,10 @@ ind{numload+1}=[1:modelsize];
 Xhat=zeros(modelsize+numstates,totalTime);
 
 for i=1:totalTime
+    if i>attackTime && X(1:modelsize,i-1)==zeros(modelsize,1)
+        break;
+    endif
+
     printf("iteration=%d\n",i);
     fflush(stdout);
 

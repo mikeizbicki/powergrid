@@ -25,26 +25,43 @@ A_attack = @(K_L) [zeros(numgen,numgen)  , zeros(numgen,numgen)  , zeros(numgen,
 
 A_attacked = @(K_L) @(n) A+A_attack(K_L)*attackMultiplier(n);
 
-cureig=max(abs(eig(A+A_attack(K_L))));
-curmul=1;
+########################################
+# binary search for setting the K_L
+
+maxmul=2;
+minmul=0.5;
 factor=0.01;
 itr=0;
-while itr<500 && (cureig<(1+factor/numload) || cureig>(1+2*factor/numload))
+
+while max(abs(eig(A+A_attack(maxmul*K_L)))) < 1+factor/numload
+    maxmul*=2;
+    printf("maxmul=%d\n",maxmul);
+    fflush(stdout);
+endwhile
+
+while max(abs(eig(A+A_attack(minmul*K_L)))) > 1+2*factor/numload
+    minmul*=2;
+    printf("minmul=%d\n",minmul);
+    fflush(stdout);
+endwhile
+
+while true
+    curmul=(maxmul+minmul)/2;
+    cureig=max(abs(eig(A+A_attack(curmul*K_L))));
+    if cureig<(1+factor/numload)
+        minmul=curmul;
+    elseif cureig>(1+2*factor/numload)
+        maxmul=curmul;
+    else
+        break;
+    endif
     itr+=1;
-    cureig=max(abs(eig(A+A_attack(K_L*curmul))));
     printf("cureig=%f;curmul=%f\n",cureig,curmul);
     fflush(stdout);
-    if cureig>1.01
-        curmul/=1+1/itr;#**1.3;
-    else
-        curmul*=1+1/itr;
-    endif
 endwhile
 K_L *= curmul;
 
-#while max(abs(eig(A+A_attack(K_L))))<1.005
-    #K_L *= 1.005;
-#endwhile
+########################################
 
 dynamics = @(n) @(x) A_attacked(K_L)(n)*x - [zeros(numgen*2,1);invB_LL*P_L(n)];
 
