@@ -4,23 +4,32 @@
 addpath "./src/ekfukf"
 
 ########################################
+# process commandline args
 
-function ret=argv2()
+function ret=localargv()
     ret=cell(10);
     ret{1}='2';
-    #ret{2}='src/grid/ring.m';
     ret{2}='src/grid/clusterSmallWorld.m';
-    ret{3}='10';
+    ret{3}='5';
     ret{4}='src/gridUpdate/addLaplace.m';
     ret{5}='10';
     ret{6}='src/attacks/localSpike.m';
     ret{7}='src/loads/gaussian.m';
     ret{8}='src/powerObservations/Observed.m';
     ret{9}='src/extractKL/localKL.m';
-    ret{10}='src/filters/ukf.m';
+    ret{10}='src/filters/ukfSM.m';
 endfunction
 
-########################################
+if exist('argv')==5
+    if length(argv())==0
+        argv=localargv;
+    elseif length(argv())!=10
+        printf("ERROR: length of argv()=%d is incorrect\n",length(argv()));
+        exit();
+    endif
+else
+    argv=localargv;
+endif
 
 seed=str2num(argv(){1});
 grid=argv(){2};
@@ -34,16 +43,19 @@ kl=argv(){9};
 filter=argv(){10};
 
 ########################################
+# helper functions
 
 function ret=getFilename(a)
     splt=strsplit(a,"/.");
     ret=splt{max(1,length(splt)-1)};
 endfunction
 
+indicator = @(x) x>0;
+
+figure('visible','off');
+
 ########################################
 # run simulation
-
-indicator = @(x) x>0;
 
 rand("seed",seed);
 randn('seed',seed);
@@ -62,15 +74,15 @@ source("src/sample.m");
 basename=['results/',num2str(seed),'-',getFilename(grid),'-',num2str(gridsize),'-',getFilename(gridUpdate),'-',num2str(numconn),'-',getFilename(attack),'-',getFilename(load),'-',getFilename(powerObservations),'-',getFilename(kl),]
 print('-color','-dpsc',[basename,'.eps']);
 source(filter);
-filename=[basename,'-',getFilename(filter),'.eps']
-print('-color','-dpsc',filename);
+filtername=[basename,'-',getFilename(filter)]
+print('-color','-dpsc',[filename,'.eps']);
 
 ########################################
 # output results
 
 source('src/evaluate.m');
-csvwrite([basename,'-deltaThresholds.csv'],deltaThresholds);
-csvwrite([basename,'-omegaThresholds.csv'],omegaThresholds);
-csvwrite([basename,'-thetaThresholds.csv'],thetaThresholds);
-csvwrite([basename,'-attackThresholds.csv'],attackThresholds);
-csvwrite([basename,'-separation.csv'],separation);
+csvwrite([filtername,'-deltaThresholds.csv'],deltaThresholds);
+csvwrite([filtername,'-omegaThresholds.csv'],omegaThresholds);
+csvwrite([filtername,'-thetaThresholds.csv'],thetaThresholds);
+csvwrite([filtername,'-attackThresholds.csv'],attackThresholds);
+csvwrite([filtername,'-separation.csv'],separation);
