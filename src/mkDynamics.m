@@ -48,7 +48,9 @@ endwhile
 while true
     curmul=(maxmul+minmul)/2;
     cureig=max(abs(eig(A+A_attack(curmul*K_L))));
-    if cureig<(1+factor/numload)
+    if maxmul==minmul
+        break
+    elseif cureig<(1+factor/numload)
         minmul=curmul;
     elseif cureig>(1+2*factor/numload)
         maxmul=curmul;

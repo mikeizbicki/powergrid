@@ -59,7 +59,7 @@ source(powerObservations);
 source("src/mkDynamics.m");
 source(kl);
 source("src/sample.m");
-basename=['results/',num2str(seed),'-',getFilename(grid),'-',num2str(gridsize),'-',num2str(gridUpdate),'-',num2str(numconn),'-',getFilename(attack),'-',getFilename(load),'-',getFilename(powerObservations),'-',getFilename(kl),]
+basename=['results/',num2str(seed),'-',getFilename(grid),'-',num2str(gridsize),'-',getFilename(gridUpdate),'-',num2str(numconn),'-',getFilename(attack),'-',getFilename(load),'-',getFilename(powerObservations),'-',getFilename(kl),]
 print('-color','-dpsc',[basename,'.eps']);
 source(filter);
 filename=[basename,'-',getFilename(filter),'.eps']
@@ -69,8 +69,8 @@ print('-color','-dpsc',filename);
 # output results
 
 source('src/evaluate.m');
-writecsv([basename,'-deltaThreshold.csv'],deltaThreshold);
-writecsv([basename,'-omegaThreshold.csv'],omegaThreshold);
-writecsv([basename,'-thetaThreshold.csv'],thetaThreshold);
-writecsv([basename,'-attackThreshold.csv'],attackThreshold);
-writecsv([basename,'-separation.csv'],separation);
+csvwrite([basename,'-deltaThresholds.csv'],deltaThresholds);
+csvwrite([basename,'-omegaThresholds.csv'],omegaThresholds);
+csvwrite([basename,'-thetaThresholds.csv'],thetaThresholds);
+csvwrite([basename,'-attackThresholds.csv'],attackThresholds);
+csvwrite([basename,'-separation.csv'],separation);
