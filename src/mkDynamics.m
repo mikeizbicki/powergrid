@@ -2,8 +2,6 @@
 # This file creates the dynamic system based on the in-scope powergrid variables.
 #
 
-#KLsize = numgen*numload;
-KLsize = numload;
 modelsize = numgen+numgen+numload;
 
 ########################################
@@ -66,6 +64,10 @@ K_L *= curmul;
 ########################################
 
 dynamics = @(n) @(x) A_attacked(K_L)(n)*x - [zeros(numgen*2,1);invB_LL*P_L(n)];
+
+dynamicsKL = @(n) @(x) [A_attacked(extractKL(x))(n),zeros(numgen*2+numload,KLsize)
+                       ;zeros(KLsize,numgen*2+numload),eye(KLsize)
+                       ]*x - [zeros(numgen*2,1);invB_LL*P_L_obs(n);zeros(KLsize,1)];
 
 extractDOT = @(x) x(1:numgen*2+numload);
 

@@ -1,3 +1,15 @@
+#! /usr/bin/octave -qf
+
+file=argv(){1};
+
+seps=csvread(file);
+indicator = @(x) x<0;
+acc=sum(indicator(seps),1)/rows(seps);
+plot([1:2000],acc);
+pause;
+
+quit();
+
 hold off
 seps=csvread('results/clusterSmallWorld-10-addUniform-5-spike-gaussian-Unobserved-fullKL-separation.csv' );
 indicator = @(x) x<0;
@@ -13,5 +25,6 @@ function csv2roc(file)
     Y=[0:0.01:1, 1:0.1:50];
     Y(ave==2000)=max(Y(ave<2000));
     plot(ave,Y,'1');
+    pause;
 endfunction
 csv2roc ('results/clusterSmallWorld-10-addUniform-5-spike-gaussian-Unobserved-fullKL-attackThresholds.csv');

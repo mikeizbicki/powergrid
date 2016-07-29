@@ -2,7 +2,8 @@
 # Generates the Xhat for the in-scope simulation
 #
 
-M = [delta0;omega0;theta0;zeros(KLsize,1)];
+#M = [delta0;omega0;theta0;zeros(KLsize,1)];
+M = [delta0;omega0;theta0;initM];
 P = [eye(modelsize), zeros(modelsize,KLsize); zeros(KLsize,modelsize), eye(KLsize)];
 Xhat=zeros(modelsize+KLsize,totalTime);
 KLindices=[modelsize+1:modelsize+KLsize];
