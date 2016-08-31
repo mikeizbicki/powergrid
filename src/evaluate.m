@@ -25,6 +25,7 @@ Xhat_loads_safe=Xhat_loads;
 Xhat_loads_safe(attackLoad,:)=[];
 Xhat_loads_attacks=Xhat_loads(attackLoad,:);
 separation=max(Xhat_loads_attacks,[],1)-max(Xhat_loads_safe,[],1);
+separationAbs=max(abs(Xhat_loads_attacks),[],1)-max(abs(Xhat_loads_safe),[],1);
 
 plot(attackThresholds',Y,"1")
 plot(time,separation,"1")
