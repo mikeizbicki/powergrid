@@ -1,0 +1,363 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{amsmath}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\DeclareMathOperator*{\vectorize}{vec}
+
+\newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left({{#1}},{{#2}}\right)}}
+\newcommand{\trans}[1]{\ensuremath{{#1}^{\mathsf{T}}}}
+
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\vv}{\mathbf{v}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{filecontents}{paper.bib}
+@inproceedings{wan2000unscented,
+  title={The unscented Kalman filter for nonlinear estimation},
+  author={Wan, Eric A and Van Der Merwe, Rudolph},
+  booktitle={Adaptive Systems for Signal Processing, Communications, and Control Symposium 2000. AS-SPCC. The IEEE 2000},
+  pages={153--158},
+  year={2000},
+  organization={Ieee}
+}
+
+@inproceedings{morelande2006reduced,
+  title={Reduced sigma point filtering for partially linear models},
+  author={Morelande, Mark R and Ristic, Branko},
+  booktitle={2006 IEEE International Conference on Acoustics Speech and Signal Processing Proceedings},
+  volume={3},
+  pages={III--III},
+  year={2006},
+  organization={IEEE}
+}
+
+@inproceedings{padilla2010adaptive,
+  title={An adaptive-covariance-rank algorithm for the unscented Kalman filter},
+  author={Padilla, Lauren E and Rowley, Clarence W},
+  booktitle={49th IEEE Conference on Decision and Control (CDC)},
+  pages={1324--1329},
+  year={2010},
+  organization={IEEE}
+}
+
+@article{wang2010generating,
+  title={Generating statistically correct random topologies for testing smart grid communication and control networks},
+  author={Wang, Zhifang and Scaglione, Anna and Thomas, Robert J},
+  journal={IEEE transactions on Smart Grid},
+  volume={1},
+  number={1},
+  pages={28--39},
+  year={2010},
+  publisher={IEEE}
+}
+
+@inproceedings{hines2010topological,
+  title={The topological and electrical structure of power grids},
+  author={Hines, Paul and Blumsack, Seth and Sanchez, E Cotilla and Barrows, Clayton},
+  booktitle={System Sciences (HICSS), 2010 43rd Hawaii International Conference on},
+  pages={1--10},
+  year={2010},
+  organization={IEEE}
+}
+
+
+@article{schultz2014random,
+  title={A random growth model for power grids and other spatially embedded infrastructure networks},
+  author={Schultz, Paul and Heitzig, Jobst and Kurths, J{\"u}rgen},
+  journal={The European Physical Journal Special Topics},
+  volume={223},
+  number={12},
+  pages={2593--2610},
+  year={2014},
+  publisher={Springer}
+}
+
+@article{ghahremani2011online,
+  title={Online state estimation of a synchronous generator using unscented Kalman filter from phasor measurements units},
+  author={Ghahremani, Esmaeil and Kamwa, Innocent},
+  journal={IEEE Transactions on Energy Conversion},
+  volume={26},
+  number={4},
+  pages={1099--1108},
+  year={2011},
+  publisher={IEEE}
+}
+
+@article{ghahremani2016local,
+  title={Local and wide-area pmu-based decentralized dynamic state estimation in multi-machine power systems},
+  author={Ghahremani, Esmaeil and Kamwa, Innocent},
+  journal={IEEE Transactions on Power Systems},
+  volume={31},
+  number={1},
+  pages={547--562},
+  year={2016},
+  publisher={IEEE}
+}
+
+@article{ghahremani2011dynamic,
+  title={Dynamic state estimation in power system by applying the extended Kalman filter with unknown inputs to phasor measurements},
+  author={Ghahremani, Esmaeil and Kamwa, Innocent},
+  journal={IEEE Transactions on Power Systems},
+  volume={26},
+  number={4},
+  pages={2556--2566},
+  year={2011},
+  publisher={IEEE}
+}
+
+@article{wang2012alternative,
+  title={An alternative method for power system dynamic state estimation based on unscented transform},
+  author={Wang, Shaobu and Gao, Wenzhong and Meliopoulos, AP Sakis},
+  journal={IEEE Transactions on Power Systems},
+  volume={27},
+  number={2},
+  pages={942--950},
+  year={2012},
+  publisher={IEEE}
+}
+
+@article{qing2015decentralized,
+  title={Decentralized unscented Kalman filter based on a consensus algorithm for multi-area dynamic state estimation in power systems},
+  author={Qing, Xiangyun and Karimi, Hamid Reza and Niu, Yugang and Wang, Xingyu},
+  journal={International Journal of Electrical Power \& Energy Systems},
+  volume={65},
+  pages={26--33},
+  year={2015},
+  publisher={Elsevier}
+}
+
+@article{rigatos2013distributed,
+  title={A distributed state estimation approach to condition monitoring of nonlinear electric power systems},
+  author={Rigatos, G and Siano, P and Zervos, N},
+  journal={Asian Journal of Control},
+  volume={15},
+  number={3},
+  pages={849--860},
+  year={2013},
+  publisher={Wiley Online Library}
+}
+
+@article{yang2013false,
+  title={On false data injection attacks against Kalman filtering in power system dynamic state estimation},
+  author={Yang, Qingyu and Chang, Liguo and Yu, Wei},
+  journal={Security and Communication Networks},
+  year={2013},
+  publisher={Wiley Online Library}
+}
+
+@incollection{witczak2014unknown,
+  title={Unknown Input Observers and Filters},
+  author={Witczak, Marcin},
+  booktitle={Fault Diagnosis and Fault-Tolerant Control Strategies for Non-Linear Systems},
+  pages={19--56},
+  year={2014},
+  publisher={Springer}
+}
+
+@article{bolandhemmat2012solution,
+  title={A Solution to the State Estimation Problem of Systems with Unknown Inputs},
+  author={Bolandhemmat, Hamidreza and Clark, Christopher and Golnaraghi, Farid},
+  journal={Recent Patents on Mechanical Engineering},
+  volume={5},
+  number={2},
+  pages={102--112},
+  year={2012},
+  publisher={Bentham Science Publishers}
+}
+
+@article{yang1988observers,
+  title={Observers for linear systems with unknown inputs},
+  author={Yang, Fuyu and Wilde, Richard W},
+  journal={IEEE transactions on automatic control},
+  volume={33},
+  number={7},
+  pages={677--681},
+  year={1988},
+  publisher={Institute of Electrical and Electronics Engineers}
+}
+
+@inproceedings{amini2015dynamic,
+  title={Dynamic load altering attacks in smart grid},
+  author={Amini, Sajjad and Mohsenian-Rad, Hamed and Pasqualetti, Fabio},
+  booktitle={Innovative Smart Grid Technologies Conference (ISGT), 2015 IEEE Power \& Energy Society},
+  pages={1--5},
+  year={2015},
+  organization={IEEE}
+}
+
+@inproceedings{amini2015detecting,
+  title={Detecting dynamic load altering attacks: A data-driven time-frequency analysis},
+  author={Amini, Sajjad and Pasqualetti, Fabio and Mohsenian-Rad, Hamed},
+  booktitle={2015 IEEE International Conference on Smart Grid Communications (SmartGridComm)},
+  pages={503--508},
+  year={2015},
+  organization={IEEE}
+}
+
+@article{fang2012smart,
+  title={Smart grid—The new and improved power grid: A survey},
+  author={Fang, Xi and Misra, Satyajayant and Xue, Guoliang and Yang, Dejun},
+  journal={IEEE communications surveys \& tutorials},
+  volume={14},
+  number={4},
+  pages={944--980},
+  year={2012},
+  publisher={IEEE}
+}
+
+@article{wang2009cascade,
+  title={Cascade-based attack vulnerability on the US power grid},
+  author={Wang, Jian-Wei and Rong, Li-Li},
+  journal={Safety Science},
+  volume={47},
+  number={10},
+  pages={1332--1336},
+  year={2009},
+  publisher={Elsevier}
+}
+
+@article{rosas2007topological,
+  title={Topological vulnerability of the European power grid under errors and attacks},
+  author={Rosas-Casals, Marti and Valverde, Sergi and Sol{\'e}, Ricard V},
+  journal={International Journal of Bifurcation and Chaos},
+  volume={17},
+  number={07},
+  pages={2465--2475},
+  year={2007},
+  publisher={World Scientific}
+}
+
+@article{albert2004structural,
+  title={Structural vulnerability of the North American power grid},
+  author={Albert, R{\'e}ka and Albert, Istv{\'a}n and Nakarado, Gary L},
+  journal={Physical review E},
+  volume={69},
+  number={2},
+  pages={025103},
+  year={2004},
+  publisher={APS}
+}
+\end{filecontents}
+\immediate\write18{bibtex paper}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{enumerate}
+\item
+Filtering theory
+\begin{enumerate}
+\item
+The standard reference for the Unscented Kalman Filter and joint/dual estimation. \cite{wan2000unscented}
+When the model is partially linear (as in our case), we can use reduced sigma point filtering to improve speed with no loss in accuracy.
+\cite{morelande2006reduced}
+We can also improve speed by using a low rank approximation of the covariance matrix.
+\cite{padilla2010adaptive}
+
+\item
+There exist good filtering methods for designing Unknown Input Observers (UIOs).
+\cite{yang1988observers,bolandhemmat2012solution,witczak2014unknown}
+Using one of these methods, we can estimate the control input for our system,
+then apply the previous techniques to detect attacks.
+The UIO technique introduces extra overhead steps, however.
+My technique estimates the attack directly without needing to first estimate the control input.
+\end{enumerate}
+
+\item
+Filtering to estimate states in a power grid
+\begin{enumerate}
+\item
+All of these papers are for estimating the parameters of a single generator connected to an idealized powergrid.
+This paper claims that the UKF is better than the EKF for estimating the rotor angle and speed in synchronous generators.
+The authors use a fourth-order nonlinear model of a single motor generator with an infinite bus.
+No joint estimation is used, and the system is not under attack.
+\cite{ghahremani2011online}
+This paper uses the EKF-UI algorithm to jointly estimate the parameters of the motor controller and bus loads.
+The original system is a fourth-order nonlinear system of the single motor generator.
+The system is assumed to be not under attack.
+\cite{ghahremani2011dynamic}
+Another EKF-UI paper by the same authors.
+\cite{ghahremani2016local}
+
+\item
+This paper claims that current WAMS monitoring systems of power grids require calculation of a large Jacobian matrix.
+They propose using the UKF to avoid the need for a Jacobian, both improving runtime and accuracy.
+\cite{wang2012alternative}
+
+\item
+This paper claims that using the UKF to monitor realworld power systems is too slow.
+They identify two bottlenecks to a centralized monitor.
+First, there is a lot of communication required from every node to the monitor.
+Second, the monitor must do a lot of computation.
+They solve both problems by partitioning the powergrid into disjoint smaller grids,
+filtering each grid independently,
+and carefully communicating the results between the smaller grids.
+A similar technique might be useful to speed up my solution,
+but this is a different idea than I had.
+\cite{qing2015decentralized}
+
+This paper also does a distributed analysis of realworld power systems as above.
+This paper is more similar to our paper because they are specifically looking to detect faults.
+They detect faults in a different way.
+We have a specific model of the way faults are generated that we are looking to detect by adding new states to the system.
+They do not have a specific model, and instead apply a function to the existing states in an attempt to detect faults.
+\cite{rigatos2013distributed}
+\end{enumerate}
+
+\item
+Methods for generating random power grids
+\begin{enumerate}
+\item
+This paper demonstrates that a number of popular models for generating random graphs do not exhibit the topological and electrical properties of powergrids.
+\cite{hines2010topological}
+
+\item
+The method is relatively simple and tries to directly model powergrid statistics.
+Generates random power grids with the properties of real powergrids up to about 300 buses.
+\cite{wang2010generating}
+
+\item
+This paper has a more complex method that is suitable for any infrastructure, not just powergrids.
+The idea is to model how infrastructure actually develops over time due to realworld constraints.
+The paper claims to accurately model nation-sized powergrids (more than 1000 buses).
+\cite{schultz2014random}
+\end{enumerate}
+
+\item
+Background info
+\begin{enumerate}
+\item Smart grid survey
+\cite{fang2012smart}
+
+\item
+Types of grid attacks
+\begin{enumerate}
+\item
+False data injection attack
+\cite{yang2013false}
+
+\item
+Dynamic load altering attacks
+\cite{amini2015dynamic,amini2015detecting}
+
+\item
+Cascade based attacks
+\cite{wang2009cascade,rosas2007topological,albert2004structural}
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{paper}
+\end{document}
+
