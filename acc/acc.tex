@@ -21,12 +21,15 @@
 \newcommand{\trans}[1]{\ensuremath{{#1}^{\mathsf{T}}}}
 
 \newcommand{\e}{\mathbf{e}}
-\newcommand{\bb}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{k}}
+\newcommand{\kL}{\mathbf{k}^L}
+\newcommand{\kG}{\mathbf{k}^G}
 %\newcommand{\uu^m}{\mathbf{w}}
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\y}{\mathbf{y}}
 \newcommand{\uu}{\mathbf{u}}
 \newcommand{\vv}{\mathbf{v}}
+\newcommand{\timestep}{s}
 
 \newcommand{\fixme}[1]{\textbf{FIXME:} {#1}}
 \newcommand{\new}[1]{\color{red} {#1}}
@@ -330,27 +333,16 @@ Recent work has made advances on how to detect these attacks \cite{amini2015dyna
 This prior work has several limitations that are fixed in this paper:
 \begin{enumerate}
 \item
-Prior work requires exact, high frequency knowledge of the system loads.
-These measurements are expensive to obtain and not currently available on existing smart grid infrastructure.
-Furthermore, these measurements can be manipulated via false data injection attacks which are difficult to correct for \cite{yang2013false}.
-Our work requires only knowledge of the system states.
-These measurements are readily available and not easily subject to adversarial manipulation.
+Prior work is concerned only with identifying attacks on an individual bus.
+To identify attacks on the entire system, the method must be run separately on every bus.
+%This complicates the procedure's implementation and increases computational complexity.
+Our method naturally identifies attacks on the entire system considered as a whole.
+This lets us identify the attack sooner.
 \item
-Prior work is concerned only with detecting attacks on an individual bus.
-To detect attacks on the entire system, the detection method must be run separately on every bus.
-This complicates the procedure's implementation and increases computational complexity.
-Our method naturally detects attacks on the entire system considered as a whole, so it is simpler and more efficient.
-%The main computational bottleneck is that at every time step we take a matrix inverse.
-\item
-Prior work is not proven effective in the presence of multiple simultaneous attacks.
-Our method works with multiple attacks.
-%\item
-%Prior work cannot estimate the magnitude of an attack.
-%Our method does.
-\item
-Prior work can only identify that feedback has been added to the system;
+Prior work can only determine that feedback has been added to the system;
 it provides no information about the \emph{sign} nor \emph{magnitude} of the attack.
 Our method estimates both.
+This information is useful when deciding which countermeasures to take to mitigate the effectiveness of the attack.
 %Estimating the magnitude can be important for determining the severity of the attack and deciding the appropriate corrective measures.
 \end{enumerate}
 
@@ -396,130 +388,287 @@ Our method estimates both.
 %They do not have a specific model, and instead apply a function to the existing states in an attempt to detect faults.
 %\cite{rigatos2013distributed}
 
-\section{Problem statement}
-We model a power grid during normal operations with the following linear dynamical system.
-\begin{equation}
-\begin{aligned}
-\label{sys:norm}
-\x_{t+1} &= A\x_t + B\uu_t + \epsilon
-\\
-\epsilon &\sim \normal{0}{Q^\epsilon}
-%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
-\end{aligned}
-\end{equation}
-We assume that:
-(\emph{i})
-The matrices $A$ and $B$ are fixed in advance and known.
-These matrices depend on the physical characteristics of the power grid.
-(\emph{ii})
-The input $\uu_t$ is an unobserved control signal.
-This input represents normal industry and residential loads.
-(\emph{iii})
-The state variable $\x_t$ is fully observed at each iteration.
-The error term $\epsilon$ captures both observation and modeling error.
 
-%A load altering attack adds a new input term ${\uu_a}_t$.
-In a load altering attack, the attacker adds loads to the system in an attempt to destabilize it.
-We model these attacks with the following modified system.
+\section{Problem statement}
+
+Consider a power system with $\mathcal{N} = \mathcal{G} \cup \mathcal{L}$ as the set of buses, where $\mathcal{G}$ and $\mathcal{L}$ are the sets of generator buses and load buses, respectively.
+An example is shown in Figure \ref{fig:example}.
+The dynamics of this system are commonly modeled using the linear state space equations
 \begin{equation}
-\begin{aligned}
-\label{sys:attack1}
-\x_{t+1} &= A\x_t + B(\uu_t + \uu^{a}_t) + \epsilon
-\\
-\epsilon &\sim \normal{0}{Q^\epsilon}
-%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
-\end{aligned}
+\dot\x = A\x + B\uu
+\label{sys:norm}
 \end{equation}
-The input term $\uu^{a}_t$ captures the magnitude of the attack and is allowed to depend on time.
-When no attack is present, the term $\uu^a_t$ is zero, and the system above reduces to Equation \ref{sys:norm}.
-In a static load altering attack, the attack input $\uu^a_t$ remains a constant non-zero value throughout the attack.
-These attacks can introduce transients into the system,
+The state variables and inputs are decomposed as
+\begin{align*}
+\x
+=
+\begin{bmatrix} \delta \\ \theta \\ \omega \end{bmatrix}
+,
+~~~\uu
+=
+\begin{bmatrix} 0 \\ P^G \\ P^L \end{bmatrix}
+\end{align*}
+Here,
+$\delta$ is the vector of voltage phase angles at all generator buses,
+$\omega$ is the vector of rotor angular frequency deviations at all generator buses,
+$\theta$ is the vector of voltage phase angles at all load buses,
+$P^L$ is the vector of power consumption at all load buses,
+and $P^G$ is the vector of power generation at all generator buses.
+The vector $O^g$ is zero for generators with Automatic Generation Control (AGC) and non-zero for generators without AGC.
+The system dynamics are decomposed as
+%\resizebox{0.4\textwidth}{!}{
+\begin{align*}
+\hspace{-0.3in}
+A
+&=
+\begin{bmatrix}
+0 & 0 & I
+\\
+%(D^L)^{-1}H^{LG} & (D^L)^{-1}H^{LL} & -(D^L)^{-1}K^{LG}
+(D^L)^{-1}H^{LG} & (D^L)^{-1}H^{LL} & 0
+\\
+-M^{-1}(K^I + H^{GG}) & -M^{-1}H^{GL} & -M^{-1}(K^P + D^G)
+\end{bmatrix}
+%\end{align*}
+%\begin{flalign*}
+\\
+B
+&=
+\begin{bmatrix}
+0 & 0  & 0
+\\
+0 & (D^L)^{-1}  & 0
+\\
+-M^{-1} & 0 & 0
+\end{bmatrix}
+%&
+\end{align*}
+%}
+Here,
+$I$ is the identity matrix of appropriate dimension,
+and $M$, $D^G$, and $D^L$ are diagonal matrices with diagonal entries equal to the inertia, damping coefficients of generators, and damping coefficients of loads, respectively.
+The imaginary part of the admittance matrix is represented as
+\begin{align*}
+  H_{bus} =
+  \begin{bmatrix}
+    H^{GG} & H^{GL} \\
+    H^{LG} & H^{LL}
+  \end{bmatrix}.
+\end{align*}
+Also, $K^I$ and $K^P$ are diagonal matrices with diagonal entries equal to the integral and proportional controller coefficients of generators with AGC.
+Note that the coefficients corresponding to generators without AGC are zero.
+This system incorporates the swing equations for generators, power flow equations for the transmission network, and the governor and load frequency controller for generators with AGC.
+
+We model a load altering attack with the following modified system.
+\begin{equation}
+\dot\x = A\x + B(\uu + \uu^a)
+,~~~
+\uu^a =
+\begin{bmatrix}0\\P^{Ga}\\P^{La}\end{bmatrix}
+\label{sys:attack1}
+\end{equation}
+Here, the vectors $P^{Ga}$ and $P^{La}$ (and hence $\uu^a$) represent loads added to the system by the attacker.
+All three vectors are allowed to vary over time.
+When no attack is present, $\uu^a$ is zero, and the system above reduces to Equation \ref{sys:norm}.
+In a static load altering attack, the attack input $\uu^a$ remains a constant non-zero value throughout the attack.
+Static attacks can introduce transients into the system,
 but they cannot destabilize the system.
-In a dynamic load altering attack, $\uu^a_t$ changes over time.
-Relatively small changes in $\uu^a_t$ can induce large, destabilizing changes in the system.
+In a dynamic load altering attack, $\uu^a$ changes over time.
+Relatively small changes in $\uu^a$ can induce large, destabilizing changes in the system.
 This makes dynamic load altering attacks much more dangerous than their static counterparts.
 
-We consider the case where the attacker uses a proportional controller to dynamically determine the value of $\uu^a_t$.
-In this scheme, the attack load can be decomposed into $\uu^a_t = A^p\x_t + \uu^p_t$.
-The matrix $A^p_t$ represents the proportional gain of the attack and is allowed to vary arbitrarily over time;
-the input $\uu^p_t$ is assumed to remain constant throughout the attack (as in a static attack).
+We consider the case where the attacker uses a proportional controller to dynamically determine the value of $\uu^a$.
+In this scheme, the attack load can be decomposed as
+\begin{equation}
+\begin{aligned}
+\uu^a &= A^p\x + \uu^p
+,~~~
+A^p &=
+\begin{bmatrix}
+0 & 0 & 0
+\\
+0 & 0 & -(D^L)^{-1}K^{LG}
+\\
+0 & 0 & 0
+\end{bmatrix}
+\end{aligned}
+\end{equation}
+The $(i,j)$th entry of matrix $K^{LG}$ contains the proportional gain for load $i$ getting feedback from generator $j$.
+When no attack is present, all entries will be zero.
+The input $\uu^p$ is assumed to remain constant throughout the attack (as in a static attack).
 Substituting into Equation \ref{sys:attack1} gives us our final system dynamics under attack.
 \begin{equation}
 \begin{aligned}
-\label{sys:orig}
-\x_{t+1} &= (A + A^p_t)\x_t + B(\uu_t + \uu^p_t) + \epsilon
-\\
-\epsilon &\sim \normal{0}{Q^\epsilon}
-%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
+\dot\x &= (A + A^p)\x + B(\uu + \uu^p)
+\label{sys:attack2}
 \end{aligned}
 \end{equation}
-The adversary manipulates $A^p_t$ and $\uu^p_t$ to add positive feedback to the system with the goal of destabilizing it.
-Our goal is to determine which states are subject to positive feedback so that we can take corrective action to restore stability.
-
-In particular, each row of the $A^p_t$ matrix corresponds to a bus in our power grid.
-During normal system operation, all entries of $A^p_t$ will be zero.
-During an attack, one or more entries of $A^p_t$ will be positive.
-Our goal is to identify the rows of $A^p_t$ containing positive values,
-as these rows correspond to system buses under attack.
-
-%\subsection{Partially observed control}
+%The adversary manipulates $A^p$ and $\uu^p$ to add positive feedback to the system with the goal of destabilizing it.
+%Due to physical constraints, it is difficult for the attacker to manipulate $K^{LG}$ arbitrarily.
+%Only a small number of entries will have non-zero values.
+Our goal is to determine which load buses are under attack.
+That is, we need to determine which rows of $K^{LG}$ contain non-zero entries.
+%In particular, each row of the $K^{LG}$ matrix corresponds to a bus in our power grid.
+%During normal system operation, all entries of $A^p$ will be zero.
+%During an attack, one or more entries of $A^p$ will be positive.
+%Our goal is to identify the rows of $A^p$ containing positive values,
+%as these rows correspond to system buses under attack.
 %
-%In the power grid problem,
-%the control input $\uu_t$ cannot be observed exactly at high frequency;
-%only low frequency monitors currently exist.
-%If we assume that $\uu$ follows a Gaussian random walk, then we have
-%\begin{align}
-%\uu_t &= \uu_{f(t)} + \nu_{t-f(t)}
+%A load altering attack adds a new input term ${\uu_a}$.
+%In a load altering attack, the attacker adds loads to the system in an attempt to destabilize it.
+%
+%Finally, $K^{LG} > 0$ is a typical model of destabilizing attacks.
+%Non-zero entries of $K^{LG}$ denote positive-feedback proportional gain from power system frequency to loads.
+%
+%The dynamics of this system under simple destabilizing attack model are commonly modeled using the following state-space equations \cite{amini2015dynamic,amini2015detecting}:
+%\begin{equation} \label{eq:power system state space}
+%\begin{aligned}
+%& \left[  \begin{array}{c} \dot{\delta} \\ \dot{\theta} \\ \dot{\omega} \end{array} \right]= A  \left[ \begin{array}{c} \delta \\ \theta \\ \omega \end{array}  \right]+\left[ \begin{array}{cc} 0 & 0 \\ 0 & (D^L)^{-1} \\ -M^{-1} & 0 \end{array} \right] \left[ \begin{array}{c} P^G \\ P^L \end{array} \right],
+%\end{aligned}
+%\end{equation}
+%where
+%\begin{equation} \label{eqmatrix A}
+%\begin{split}
+%\hspace{-0.4in}
+%A
+%\!\!=\!\!
+%\left[ \begin{array}{ccc} 0 & 0 & I \\ (D^L)^{-1}H^{LG} & (D^L)^{-1}H^{LL} & -(D^L)^{-1}K^{LG} \\ -M^{-1}(K^I + H^{GG}) & -M^{-1}H^{GL} & -M^{-1}(K^P + D^G) \end{array} \right]
+%\end{split}
+%\nonumber
+%\end{equation}
+
+%Power system state-space model of \eqref{eq:power system state space} can be generally written as
+
+\begin{figure}
+\centering
+\includegraphics[width=0.47\textwidth]{img/ieee39bus}
+\caption{
+    The IEEE 39 bus example power transmission system.
+}
+\label{fig:example}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\section{Discrete problem statement}
+%
+%We model a power grid during normal operations with the following linear dynamical system.
+%\begin{equation}
+%\begin{aligned}
+%\label{sys:norm}
+%\x_{t+1} &= A\x_t + B\uu_t + \epsilon
 %\\
-%\nu_{t-f(t)} &\sim \normal{0}{(t-f(t))Q}
-%\end{align}
-%where $f(t)$ denotes the time of the most recent observation of $\uu$.
+%\epsilon &\sim \normal{0}{Q^\epsilon}
+%%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
+%\end{aligned}
+%\end{equation}
+%We assume that:
+%(\emph{i})
+%The matrices $A$ and $B$ are fixed in advance and known.
+%These matrices depend on the physical characteristics of the power grid.
+%(\emph{ii})
+%The input $\uu_t$ is an unobserved control signal.
+%This input represents normal industry and residential loads.
+%(\emph{iii})
+%The state variable $\x_t$ is fully observed at each iteration.
+%The error term $\epsilon$ captures both observation and modeling error.
 %
-%The resulting dynamical system is defined by
-%\begin{align}
+%%A load altering attack adds a new input term ${\uu_a}_t$.
+%In a load altering attack, the attacker adds loads to the system in an attempt to destabilize it.
+%We model these attacks with the following modified system.
+%\begin{equation}
+%\begin{aligned}
+%\label{sys:attack1}
+%\x_{t+1} &= A\x_t + B(\uu_t + \uu^{a}_t) + \epsilon
+%\\
+%\epsilon &\sim \normal{0}{Q^\epsilon}
+%%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
+%\end{aligned}
+%\end{equation}
+%The input term $\uu^{a}_t$ captures the magnitude of the attack and is allowed to depend on time.
+%When no attack is present, the term $\uu^a_t$ is zero, and the system above reduces to Equation \ref{sys:norm}.
+%In a static load altering attack, the attack input $\uu^a_t$ remains a constant non-zero value throughout the attack.
+%These attacks can introduce transients into the system,
+%but they cannot destabilize the system.
+%In a dynamic load altering attack, $\uu^a_t$ changes over time.
+%Relatively small changes in $\uu^a_t$ can induce large, destabilizing changes in the system.
+%This makes dynamic load altering attacks much more dangerous than their static counterparts.
+%
+%We consider the case where the attacker uses a proportional controller to dynamically determine the value of $\uu^a_t$.
+%In this scheme, the attack load can be decomposed into $\uu^a_t = A^p\x_t + \uu^p_t$.
+%The matrix $A^p_t$ represents the proportional gain of the attack and is allowed to vary arbitrarily over time;
+%the input $\uu^p_t$ is assumed to remain constant throughout the attack (as in a static attack).
+%Substituting into Equation \ref{sys:attack1} gives us our final system dynamics under attack.
+%\begin{equation}
+%\begin{aligned}
 %\label{sys:orig}
-%\x_{t+1} &= (A + A^p_t)\x_t + B(\uu_{f(t)} + \vv_t) + \epsilon_t
+%\x_{t+1} &= (A + A^p_t)\x_t + B(\uu_t + \uu^p_t) + \epsilon
 %\\
-%\epsilon_t &\sim \normal{0}{Q+(t-f(t))CQ}
-%\end{align}
-%To simplify the next section, the equations below use $\uu_t$ and $\epsilon$ instead of $\uu_{f(t)}$ and $\epsilon_t$.
-%They can be modified to the case of partially observed input by performing the appropriate substitution.
-
-%\fixme{This section should be extended with power grid specifics details on the structure of $A$, $A^p_t$ and $B$.}
+%\epsilon &\sim \normal{0}{Q^\epsilon}
+%%\x_{t+1} &= (A + A^p_t)\x_t + B\uu_t + \epsilon ,~~~~~ \epsilon \sim \normal{0}{Q}
+%\end{aligned}
+%\end{equation}
+%The adversary manipulates $A^p_t$ and $\uu^p_t$ to add positive feedback to the system with the goal of destabilizing it.
+%Our goal is to determine which states are subject to positive feedback so that we can take corrective action to restore stability.
+%
+%In particular, each row of the $A^p_t$ matrix corresponds to a bus in our power grid.
+%During normal system operation, all entries of $A^p_t$ will be zero.
+%During an attack, one or more entries of $A^p_t$ will be positive.
+%Our goal is to identify the rows of $A^p_t$ containing positive values,
+%as these rows correspond to system buses under attack.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Attack detection method}
-Our attack detection procedure has two steps.
-First we estimate the $A^p_t$ matrix at the current time step. %using the Unscented Kalman Filter.
-Then we use a thresholding procedure to determine if the system is currently under attack.
+Our attack detection procedure has two steps:
+(\emph{i})
+First we rewrite the system dynamics of Equation \ref{sys:attack2} in discrete time.
+This lets us use the Unscented Kalman Filter to perform dual state estimation to simultaneously estimate the value of $K^{LG}$ and the system states.
+(\emph{ii})
+Then, we detect the presence of an attack by thresholding the estimate of $K^{LG}$.
 
-We can estimate the $A^p_t$ matrix directly using dual state estimation.
-In this technique, we augment the original dynamical system's state variables to also include the elements of $A^p_t$.
+%\subsection{Discretization}
+We begin by discretizing Equation \ref{sys:attack2} as
+\begin{equation} \label{eq:discrete}
+\begin{aligned}
+\x_{t+1} &= (\timestep A+sA^p_t+I)\x_t + \timestep B(\uu_t+\uu_t^p) + \epsilon
+\\
+\epsilon &\sim \normal{0}{Q^\epsilon}
+\end{aligned}
+\end{equation}
+where $\timestep$ is a scalar that represents the length of a time step,
+and $\epsilon$ is an error term capturing both our modeling and observation errors.
+Recall that in the definition of $A^p_t$,
+the $K^{LG}$ matrix is unknown and determined by the attacker;
+all other elements are statically known.
+Therefore, to estimate $A^p_t$, it is sufficient to estimate $K^{LG}$.
+
+We can estimate $K^{LG}_t$ directly using dual state estimation.
+In this technique, we augment the original dynamical system's state variables to also include the elements of $K^{LG}_t$.
 The resulting augmented system is
 \begin{equation}
 \begin{aligned}
 \begin{split}
 \begin{pmatrix}
 \x_{t+1} \\
-\vectorize A^p_{t+1}
+\vectorize K^{LG}_{t+1}
 \end{pmatrix}
 &=
 \begin{pmatrix}
-A + A^p_t & 0 \\
+sA + sA^p_t + I & 0 \\
 0 & I
 \end{pmatrix}
 \begin{pmatrix}
 \x_t \\
-\vectorize A^p_t
+\vectorize K^{LG}_t
 \end{pmatrix}
 \\&~~~~~~~~~~+
 \begin{pmatrix}
-B & 0\\
+sB & 0\\
 0 & I
 \end{pmatrix}
 \begin{pmatrix}
-\uu_t + \uu^p_t \\
+\uu_t + \uu_t^p + \uu_t^p \\
 \uu^m_t
 \end{pmatrix}
 +
@@ -539,35 +688,35 @@ B & 0\\
 \end{equation}
 Here we have also introduced a new control input $\uu^m_t$ with error $\epsilon_m$.
 The $\uu^m_t$ input vector is unobserved and controlled by the attacker.
-The attacker uses $\uu^m_t$ to manipulate the $A^p_t$ matrix.
-The notation $\vectorize A^p_t$ refers to the column vector constructed by stacking the columns of $A^p_t$ on top of each other.
+The attacker uses $\uu^m_t$ to manipulate the $K^{LG}_t$ matrix (and hence the $A^p_t$ matrix).
+The notation $\vectorize K^{LG}_t$ refers to the column vector constructed by stacking the columns of $K^{LG}_t$ on top of each other.
+Note that this model is nonlinear because the $K_t^{LG}$ term appears in the definition of $A^p_t$.
 
 To make the model easier to analyze, we introduce two simplifying assumptions.
-First, we note that all of the control inputs $\uu_t$, $\uu^p_t$ and $\uu^m_t$ are unobserved.
-Therefore, we can model their contribution as random error terms.
-To keep our model simple, we assume each control input is normally distributed.
-In particular, we assume $\uu_t\sim\normal{0}{Q}$, $\uu^p_t\sim\normal{0}{Q^p}$, and $\uu^m_t\sim\normal{0}{Q^m}$.
+First, we note that the control input $\uu^m_t$ is unobserved.
+Therefore, we can model its contribution as a random error term.
+In particular, we assume $\uu^m_t\sim\normal{0}{Q^m}$.
 Second, we note that the typical attack involves only a few buses in the power grid.
-So the matrix $A^p_t$ will be highly structured.
-We assume the rank-1 structure $A^p_t=\bb_{1,t}\trans\bb_{2,t}$ where $\bb_{1,t}$ and $\bb_{2,t}$ are column vectors.
+So the matrix $K^{LG}_t$ will be highly structured.
+We assume the rank-1 structure $K^{LG}_t=\kL_t\trans{\kG}_{t}$ where $\kL_{t}$ and $\kG_{t}$ are column vectors.
 Under these assumptions, we can rewrite the dualized system described in Equation $\ref{sys:dualized}$ as
 \begin{equation}
 \begin{aligned}
 \begin{pmatrix}
 \x_{t+1} \\
-\bb_{1,t+1} \\
-\bb_{2,t+1} \\
+\kL_{t+1} \\
+\kG_{t+1} \\
 \end{pmatrix}
 &=
 \begin{pmatrix}
-A + \bb_{1,t}\trans\bb_{2,t}  & 0 & 0\\
+sA + sA^p_t + I & 0 & 0\\
 0 & I & 0\\
 0 & 0 & I
 \end{pmatrix}
 \begin{pmatrix}
 \x_t \\
-\bb_{1,t} \\
-\bb_{2,t} \\
+\kL_{t} \\
+\kG_{t} \\
 \end{pmatrix}
 +
 %\begin{pmatrix}
@@ -589,7 +738,7 @@ A + \bb_{1,t}\trans\bb_{2,t}  & 0 & 0\\
 \\\epsilon_2 &\sim\normal{0}{Q^m+Q^{\epsilon_2}}
 \end{aligned}
 \end{equation}
-This system is nonlinear, but it can be solved efficiently using the Unscented Kalman Filter (UKF) \cite{wan2000unscented}.
+This system is still nonlinear, but it can be solved efficiently using the Unscented Kalman Filter (UKF) \cite{wan2000unscented}.
 
 %When the model is partially linear (as in our case), we can use reduced sigma point filtering to improve speed with no loss in accuracy.
 %\cite{morelande2006reduced}
@@ -597,7 +746,7 @@ This system is nonlinear, but it can be solved efficiently using the Unscented K
 %\cite{padilla2010adaptive}
 
 Now we describe our thresholding procedure.
-Define the function $f_t(i) = \sum_{j=1}^n {A^p_t}{(i,j)}$ to be the sum of the entries in the $i$th row of the $A^p_t$ matrix.
+Define the function $f_t(i) = \sum_{j=1}^n {K^{LG}_t}{(i,j)}$ to be the sum of the entries in the $i$th row of the $K^{LG}_t$ matrix.
 This value is the total predicted attack happening on the $i$th bus in the power grid.
 Define $\alpha_t=\argmax_i |f_t(i)|$ to be the bus we predict to be under the heaviest attack.
 If $f_t(\alpha_t)$ is greater than some threshold $\tau$,
@@ -606,6 +755,7 @@ At this point we can take defensive measures such as isolating the bus from the 
 
 Given our estimated value of $A^p_t$, we can also estimate the sign and magnitude of the attack.
 Let $\beta$ equal the maximum eigenvalue of $A + A^p_t$ minus the maximum eigenvalue of $A$.
+That is, $\beta = \lVert A - A^p_t\rVert_2 - \lVert A \rVert_2$.
 If $\beta$ is positive, then the attack added positive feedback into the system,
 and if $\beta$ is negative, then the attack added negative feedback.
 The size of $\beta$ is the amount of feedback added.
@@ -617,7 +767,7 @@ We can avoid this calculation when all of the eigenvalues of $A^p_t$ are nonnega
 This will occur, for example, when all of the entries of $A^p_t$ are positive.
 In this case each eigenvalue of $A+A^p_t$ must be greater than or equal to the corresponding eigenvalue of $A$.
 Furthermore, the maximum value of $\beta$ must be less than or equal to the maximum eigenvalue of $A^p_t$.
-The rank-1 matrix $A^p_t=\bb_{1,t}\trans\bb_{2,t}$ is guaranteed to have at most one nonzero eigenvalue equal to $\trans\bb_{1,t}\bb_{2,t}$.
+The rank-1 matrix $A^p_t=\kL_{t}\trans\kG_{t}$ is guaranteed to have at most one nonzero eigenvalue equal to $\trans\kL_{t}\kG_{t}$.
 So this value is an upper bound on the magnitude of the attack.
 
 %This method estimates both the \emph{sign} and \emph{magnitude} of an attack as follows.
@@ -646,38 +796,6 @@ So this value is an upper bound on the magnitude of the attack.
     %Second, even if we had the true $A^p_t$ value, the rank-1 approximation introduces potentially unbounded error.
     %We
 %}
-
-\section{Connection to previous methods}
-
-In the previous section, we formulated our method as a dual state estimation problem.
-In this section, we show how our method can also be seen as a simplification of a previous technique we call the UIO/FFT method, which is an extension of the FFT method \cite{amini2015dynamic,amini2015detecting}.
-
-The Fast Fourier Transform (FFT) method works as follows.
-First, directly measure the control signal $\vv_t=\uu_t + A^p_t\x_t + \uu^p_t$.
-Then, perform the FFT on $\vv_t$.
-A destabilizing attack will introduce new frequencies into the FFT that are not present during normal operation.
-Whenever these frequencies exceed a pre-specified threshold, we say an attack is happening.
-Unfortunately, the control signal $\vv_t$ is expensive to measure in practice on modern power grids.
-So the FFT method cannot be used directly.
-
-The UIO/FFT method extends the FFT method to solve this practical difficulty.
-In the UIO/FFT method, we first design an Unknown Input Observer (UIO) to estimate the value of $\vv_t$ from the data; then we perform the FFT method on this estimate.
-Rearranging the terms in Equation \ref{sys:orig} gives our UIO.
-\begin{equation}
-\vv_t \approx \vv_t + B^{-1}\epsilon =  B^{-1}(\x_{t+1} - A\x_t)
-\end{equation}
-This equation gives us a method for estimating $\vv_t$ given the current state $\x_t$ and the next state $\x_{t+1}$.
-
-Now we are ready to see how our method simplifies the UIO/FFT method.
-Observe that $\x_{t+1}$ depends on the unknown quantity $A^p_t$.
-Therefore, standard techniques for solving the UIO problem also implicitly calculate $A^p_t$ as an intermediate step.
-For example, \cite{witczak2014unknown} uses the unscented Kalman filter to solve the UIO problem in an approach reminiscent of the previous section.
-
-Our fundamental contribution is to observe that the $A^p_t$ matrix contains all the information we need to determine whether an attack is occurring, so there is no need to perform the subsequent FFT step.
-In fact, the FFT step necessarily loses information contained within $A^p_t$.
-The FFT method is only able to determine whether an attack is occurring;
-it cannot estimate either the sign or the magnitude of the attack.
-Direct inspection of the $A^p_t$ method, on the other hand gives us both.
 
 \section{Simulation}
 
