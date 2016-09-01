@@ -1,5 +1,5 @@
+#! /bigdata/bioinfo/pkgadmin/opt/linux/centos/7.x/x86_64/pkgs/octave/4.0.0/bin/octave -qf
 #! /usr/bin/octave -qf
-##! /bigdata/bioinfo/pkgadmin/opt/linux/centos/7.x/x86_64/pkgs/octave/4.0.0/bin/octave -qf
 
 addpath "./src/ekfukf"
 
@@ -10,7 +10,7 @@ function ret=localargv()
     ret=cell(10);
     ret{1}='2';
     ret{2}='src/grid/clusterSmallWorld.m';
-    ret{3}='30';
+    ret{3}='10';
     ret{4}='src/gridUpdate/addUniform.m';
     ret{5}='30';
     ret{6}='src/attacks/spike.m';
@@ -26,13 +26,13 @@ figure('visible','off');
 if exist('argv')==5
     if length(argv())==0
         argv=localargv;
-        figure('visible','on');
+        #figure('visible','on');
     elseif length(argv())!=10
         printf("ERROR: length of argv()=%d is incorrect\n",length(argv()));
         exit();
     endif
 else
-    figure('visible','on');
+    #figure('visible','on');
     argv=localargv;
 endif
 
@@ -93,3 +93,4 @@ csvwrite([filtername,'-omegaThresholds.csv'],omegaThresholds);
 csvwrite([filtername,'-thetaThresholds.csv'],thetaThresholds);
 csvwrite([filtername,'-attackThresholds.csv'],attackThresholds);
 csvwrite([filtername,'-separation.csv'],separation);
+csvwrite([filtername,'-separationAbs.csv'],separationAbs);

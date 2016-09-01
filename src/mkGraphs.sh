@@ -1,6 +1,8 @@
 #!/bin/bash
 
-params='clusterSmallWorld-10-addUniform-5-spike-gaussian-Unobserved-fullKL'
+params='clusterSmallWorld-50-addUniform-100-spike-gaussian-Unobserved-rank1-ukf'
+#params='clusterSmallWorld-90-addUniform-180-spike-gaussian-Unobserved-rank1-ukf'
+#params='clusterSmallWorld-10-addUniform-5-spike-gaussian-Unobserved-fullKL'
 #params='clusterSmallWorld-10-addUniform-5-localSpike-gaussian-Unobserved-localKL-ukf'
 
 for i in attackThresholds separation; do
@@ -12,6 +14,6 @@ for i in attackThresholds separation; do
     done
 done
 
-./src/plotcsv-fraction.m "results/$params-separation.csv"
-./src/plotcsv-thresholds.m "results/$params-attackThresholds.csv"
+#./src/plotcsv-fraction.m "results/$params-separation.csv"
+#./src/plotcsv-thresholds.m "results/$params-attackThresholds.csv"
 #cat results/$file
