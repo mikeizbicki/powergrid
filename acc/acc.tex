@@ -31,7 +31,7 @@
 \newcommand{\vv}{\mathbf{v}}
 \newcommand{\timestep}{s}
 
-\newcommand{\fixme}[1]{\textbf{FIXME:} {#1}}
+\newcommand{\fixme}[1]{\textbf{FIXME: {#1}}}
 \newcommand{\new}[1]{\color{red} {#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -269,7 +269,7 @@
 
 
 \title{\LARGE \bf
-    Destabilizing Attacks in Power Systems
+    Detection and Identification of Destabilizing Attacks in Power Systems
 }
 
 \author{ Mike Izbicki, Sajjad Amini, Christian Shelton, and Hamed Mohsenian-Rad}
@@ -294,12 +294,12 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-A dynamic load altering attack inserts positive feedback into a power grid.
-This feedback destabilizes the system,
+Destabilizing attacks insert positive feedback into a power system.
+This feedback destabilizes the system by changing the power system dynamics,
 which can damage equipment.
 We propose a method for detecting these attacks before they damage equipment.
-We observe that these attacks can be modeled as a reparameterization of the power grid's dynamical system model.
-Our method uses the Unscented Kalman Filter to jointly estimate both the states and parameters of the attacked system.
+We observe that these attacks can be modeled as a reparameterization of the power system's dynamical model.
+Our method uses the Unscented Kalman Filter to jointly estimate both the system states and parameters of the attack.
 We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining accuracy of detection.
 We show empirically that this method successfully identifies complex attacks involving many nodes at once.
 \end{abstract}
@@ -308,36 +308,23 @@ We show empirically that this method successfully identifies complex attacks inv
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-%The smart grid is a suite of new power grid technologies.
-%See \cite{fang2012smart} for a survey.
-%These technologies make power grids more efficient,
-%but they also introduce new points of failure.
-%These failures can be either accidental or adversarial.
-%To enable the smart grid, new technologies are needed to detect and prevent these failures.
-%One example of an adversarial failure is the false data injection attack \cite{yang2013false}.
-%\item
-%Cascade based attacks
-%\cite{wang2009cascade,rosas2007topological,albert2004structural}
-In this paper, we consider failures in smart power grids caused by dynamic load altering attacks.
-%
-%In a load altering attack, the attacker manipulates uncontrolled loads in an attempt to damage the system.
-%These attacks can be either static or dynamic.
-%In the static attack, the loads do not change over time.
-%Relatively large loads must be added to damage the system.
-%Such large loads are difficult to acquire in practice.
-%In a dynamic attack, the loads are allowed to change over time.
-%In this setting, a relatively small load can add destabilize the system.
-%Because the required loads are smaller,
-%these attacks are potentially easier to carry out in practice.
+In this paper, we consider failures in smart power grids caused by destabilizing attacks.
+Such attacks can be conducted in different ways.
+One of the most common methods for inserting positive feedback is manipulating load consumption by getting feedback from frequency through a simple proportional gain controller.
+\fixme{We need to at least list some other attack types.}
+This is known as a dynamic load altering attack \cite{}.
+We aim to detect the presence of such attacks and identify their type,
+e.g. compromised loads in dynamic load altering attacks.
+
 Recent work has made advances on how to detect these attacks \cite{amini2015dynamic,amini2015detecting}.
 This prior work has several limitations that are fixed in this paper:
 \begin{enumerate}
 \item
 Prior work is concerned only with identifying attacks on an individual bus.
-To identify attacks on the entire system, the method must be run separately on every bus.
+To identify attacks on the entire system, the method must be run several times separately on every bus.
 %This complicates the procedure's implementation and increases computational complexity.
 Our method naturally identifies attacks on the entire system considered as a whole.
-This lets us identify the attack sooner.
+This reduces the identification time.
 \item
 Prior work can only determine that feedback has been added to the system;
 it provides no information about the \emph{sign} nor \emph{magnitude} of the attack.
@@ -391,14 +378,16 @@ This information is useful when deciding which countermeasures to take to mitiga
 
 \section{Problem statement}
 
-Consider a power system with $\mathcal{N} = \mathcal{G} \cup \mathcal{L}$ as the set of buses, where $\mathcal{G}$ and $\mathcal{L}$ are the sets of generator buses and load buses, respectively.
+Consider a power system with $\mathcal{N} = \mathcal{G} \cup \mathcal{L}$ as the set of buses (i.e. nodes),
+where $\mathcal{G}$ and $\mathcal{L}$ are the sets of generator buses and load buses, respectively.
 An example is shown in Figure \ref{fig:example}.
-The dynamics of this system are commonly modeled using the linear state space equations
+The dynamics of this system are commonly modeled using the standard linear power system state space equation
 \begin{equation}
 \dot\x = A\x + B\uu
+~,
 \label{sys:norm}
 \end{equation}
-The state variables and inputs are decomposed as
+where the state variables and inputs are
 \begin{align*}
 \x
 =
@@ -407,6 +396,7 @@ The state variables and inputs are decomposed as
 ~~~\uu
 =
 \begin{bmatrix} 0 \\ P^G \\ P^L \end{bmatrix}
+.
 \end{align*}
 Here,
 $\delta$ is the vector of voltage phase angles at all generator buses,
@@ -414,13 +404,14 @@ $\omega$ is the vector of rotor angular frequency deviations at all generator bu
 $\theta$ is the vector of voltage phase angles at all load buses,
 $P^L$ is the vector of power consumption at all load buses,
 and $P^G$ is the vector of power generation at all generator buses.
-The vector $O^g$ is zero for generators with Automatic Generation Control (AGC) and non-zero for generators without AGC.
-The system dynamics are decomposed as
+Entries of $P^G$ associated with generators that have Automatic Generation Control (AGC) are zero and nonzero otherwise.
+\fixme{Provide a detailed definition of AGC?}
+The system dynamics matrices are
 %\resizebox{0.4\textwidth}{!}{
 \begin{align*}
 \hspace{-0.3in}
 A
-&=
+\!\!&=\!\!\!
 \begin{bmatrix}
 0 & 0 & I
 \\
@@ -429,11 +420,13 @@ A
 \\
 -M^{-1}(K^I + H^{GG}) & -M^{-1}H^{GL} & -M^{-1}(K^P + D^G)
 \end{bmatrix}
+,
 %\end{align*}
 %\begin{flalign*}
 \\
 B
-&=
+%&=
+\!\!&=\!\!\!
 \begin{bmatrix}
 0 & 0  & 0
 \\
@@ -441,10 +434,11 @@ B
 \\
 -M^{-1} & 0 & 0
 \end{bmatrix}
+,
 %&
 \end{align*}
 %}
-Here,
+where
 $I$ is the identity matrix of appropriate dimension,
 and $M$, $D^G$, and $D^L$ are diagonal matrices with diagonal entries equal to the inertia, damping coefficients of generators, and damping coefficients of loads, respectively.
 The imaginary part of the admittance matrix is represented as
@@ -455,35 +449,54 @@ The imaginary part of the admittance matrix is represented as
     H^{LG} & H^{LL}
   \end{bmatrix}.
 \end{align*}
-Also, $K^I$ and $K^P$ are diagonal matrices with diagonal entries equal to the integral and proportional controller coefficients of generators with AGC.
+\fixme{Does this really specify $H_{bus}$?  Do we not need to define the other $H_*$s?}
+Also, $K^I$ and $K^P$ are diagonal matrices with diagonal entries equal to the integral and proportional coefficients of generator controllers with AGC capability.
 Note that the coefficients corresponding to generators without AGC are zero.
 This system incorporates the swing equations for generators, power flow equations for the transmission network, and the governor and load frequency controller for generators with AGC.
 
-We model a load altering attack with the following modified system.
+The focus in this paper is on attacks against power system stability.
+As shown in Figure 1, destabilizing attacks can affect both generation and load sectors.
+In either case, the attack is in principle caused due to a positive feedback.
+On the generation side, the attack may compromise the generator governor controller or is associated sensors or feedback loop.
+(See \cite{Pasqualetti2012, DeMarco1996} for more details.)
+On the load side, the attack may compromise the direct or indirect load control mechanisms, e.g., in demand response programs, or their associated sensors, or command signals.
+(See \cite{Mohsenian-Rad2010, Marnerides2014, Amini2015} for more details.)
+
+The new power system dynamics under a simple destabilizing attack with proportional positive feedback gains can be expressed as:
 \begin{equation}
+\label{sys:attack1}
 \dot\x = A\x + B(\uu + \uu^a)
-,~~~
+,
+\end{equation}
+where
+\begin{equation}
 \uu^a =
 \begin{bmatrix}0\\P^{Ga}\\P^{La}\end{bmatrix}
-\label{sys:attack1}
+.
 \end{equation}
-Here, the vectors $P^{Ga}$ and $P^{La}$ (and hence $\uu^a$) represent loads added to the system by the attacker.
-All three vectors are allowed to vary over time.
-When no attack is present, $\uu^a$ is zero, and the system above reduces to Equation \ref{sys:norm}.
-In a static load altering attack, the attack input $\uu^a$ remains a constant non-zero value throughout the attack.
-Static attacks can introduce transients into the system,
-but they cannot destabilize the system.
-In a dynamic load altering attack, $\uu^a$ changes over time.
-Relatively small changes in $\uu^a$ can induce large, destabilizing changes in the system.
-This makes dynamic load altering attacks much more dangerous than their static counterparts.
+Here, the vector $\uu^a$ denotes the portion of the system input generated by the attacker.
+The portion of the attack implemented on the generation side is represented by the compromised power injection vector $P^{Ga}$.
+Similarly, the portion of the attack implemented on the load side is represented by the compromised power consumption vector $P^{Ga}$.
+%the vectors $P^{Ga}$ and $P^{La}$ (and hence $\uu^a$) represent loads added to the system by the attacker.
+%All three vectors are allowed to vary over time.
+%When no attack is present, $\uu^a$ is zero, and the system above reduces to Equation \ref{sys:norm}.
+%In a static load altering attack, the attack input $\uu^a$ remains a constant non-zero value throughout the attack.
+%Static attacks can introduce transients into the system,
+%but they cannot destabilize the system.
+%In a dynamic load altering attack, $\uu^a$ changes over time.
+%Relatively small changes in $\uu^a$ can induce large, destabilizing changes in the system.
+%This makes dynamic load altering attacks much more dangerous than their static counterparts.
 
 We consider the case where the attacker uses a proportional controller to dynamically determine the value of $\uu^a$.
+The feedback is taken from frequency sensors, just like in the frequency-responsive controllable loads that are widely used in practice.
 In this scheme, the attack load can be decomposed as
 \begin{equation}
-\begin{aligned}
-\uu^a &= A^p\x + \uu^p
-,~~~
-A^p &=
+\label{eq:pos}
+\uu^a = A^p\x + \uu^p
+\end{equation}
+where
+\begin{equation}
+A^p =
 \begin{bmatrix}
 0 & 0 & 0
 \\
@@ -491,23 +504,31 @@ A^p &=
 \\
 0 & 0 & 0
 \end{bmatrix}
-\end{aligned}
 \end{equation}
-The $(i,j)$th entry of matrix $K^{LG}$ contains the proportional gain for load $i$ getting feedback from generator $j$.
-When no attack is present, all entries will be zero.
+The entry on row $i$ column $j$ of matrix $K^{LG}$ contains the proportional gain for load bus $i$ getting feedback from the frequency of generator bus $j$.
+When no attack is present, $K^{LG}$ is the zero matrix.
 The input $\uu^p$ is assumed to remain constant throughout the attack (as in a static attack).
-Substituting into Equation \ref{sys:attack1} gives us our final system dynamics under attack.
+Substituting Equation \ref{eq:pos} into Equation \ref{sys:attack1} gives us our final system dynamics under attack:
 \begin{equation}
+\label{sys:attack2}
 \begin{aligned}
 \dot\x &= (A + A^p)\x + B(\uu + \uu^p)
-\label{sys:attack2}
+.
 \end{aligned}
 \end{equation}
-%The adversary manipulates $A^p$ and $\uu^p$ to add positive feedback to the system with the goal of destabilizing it.
-%Due to physical constraints, it is difficult for the attacker to manipulate $K^{LG}$ arbitrarily.
-%Only a small number of entries will have non-zero values.
-Our goal is to determine which load buses are under attack.
-That is, we need to determine which rows of $K^{LG}$ contain non-zero entries.
+An example D-LAA under this system is given in Figure \ref{}.
+
+Effectively detecting D-LAAs is an open problem.
+In this paper, we propose a detection method that directly estimates the $K^{LG}$ matrix.
+Our method requires only synchronized measurements of the state vector $\x$.
+These measurements are widely available in existing power systems through synchrophasors, e.g. PMUs \cite{}.
+
+%While the concept of destabilizing attacks against power systems are well-documented, %c.f. \cite{#1, #2, #3, #4, #5, #6},
+%there is currently a limited understanding on how to detect such attacks by conducting practical measurements in power systems.
+%Addressing this open problem is the focus of this paper.
+%Our goal is to determine which load buses are under attack.
+%That is, we need to determine which rows of $K^{LG}$ contain non-zero entries.
+
 %In particular, each row of the $K^{LG}$ matrix corresponds to a bus in our power grid.
 %During normal system operation, all entries of $A^p$ will be zero.
 %During an attack, one or more entries of $A^p$ will be positive.
@@ -813,7 +834,8 @@ This procedure was designed specifically for modeling real world power grid stru
 An outline of the procedure is:
 First generate a random number of ring shaped grids with fewer than 10 buses each;
 Then randomly add connections between the buses until the average degree of each node is 4.
-The system is then scaled so that the maximum eigenvalue of the $A$ matrix is 0.999.
+To ensure the stability of the resulting system,
+we scale the $A$ matrix so that its maximum eigenvalue is no greater than 0.999.
 This model generates realistically shaped power grids up to about 300 buses.
 Once the grid has been generated, a load input ($\uu_t$) is sampled from a Gaussian process truncated so that values are always non-negative.
 
@@ -822,9 +844,12 @@ Once the grid has been generated, a load input ($\uu_t$) is sampled from a Gauss
 %The paper claims to accurately model nation-sized powergrids (more than 1000 buses).
 %\cite{schultz2014random}
 
-For the first experiment, we initiated an attack at time 0.1 seconds on a random bus $i$ getting feedback from bus $j$ by setting ${A^p_t}^{(i,j)}$ so that the matrix $A+A^p_t$ has maximum eigenvalue 1.05.
-As shown in Figure $\ref{fig:destab}$, this destabilizes the system.
-Our estimation of $A^p_t$ quickly converges to the correct value.
+For the first experiment, we initiated an attack at time 0.1 seconds on a random bus $i$ getting feedback from bus $j$.
+We model the attack by setting all the entries of $A^p_t$ to zero except for the entry in row $i$ and column $j$.
+This entry is set so that the matrix $A+A^p_t$ has maximum eigenvalue 1.05,
+ensuring that the attack destabilizes the system.
+Figure $\ref{fig:destab}$ shows the results of running our UKF algorithm on the resulting system.
+Our estimate of $A^p_t$ quickly converges to the correct value.
 
 \begin{figure}
 \begin{tabular}{cc}
@@ -852,10 +877,11 @@ time (sec)
 \label{fig:destab}
 \end{figure}
 
-Next we show how our predictions scale as a function of the number of attacks.
-We repeat the same procedure as above, but select 3 and 5 buses to get selected for an attack.
-The results are shown in Figure \ref{fig:numattacks}.
-Surprisingly, the rank-1 approximation does fairly well even when the number of attacks increases.
+Our next experiment shows how our predictions scale as a function of the number of attacks.
+We repeat the same procedure as above, but add more nonzero entries to $A^p_t$.
+The results of 3 and 5 nonzero entries are shown in Figure \ref{fig:numattacks}.
+The rank-1 approximation of $K^L$ does fairly well even when the number of attacks increases.
+This is surprising because the true $K^L$ matrix has rank equal to the number of attacks.
 
 \begin{figure}
 \begin{tabular}{cc}
@@ -915,11 +941,14 @@ time (sec)
 %\label{fig:numattacks}
 %\end{figure*}
 
-Now we demonstrate that our method can detect negative feedback added to the power system.
-We repeat the procedure above, but set the value of ${A^p_t}^{(i,j)}$ to $-10$.
+Our last qualitative experiment shows that our UKF method can also detect negative feedback added to the power system.
+We repeat the procedure of the first experiment,
+but set the value of ${A^p_t}^{(i,j)}$ to $-10$.
+Recall that negative values of the $A^p_t$ matrix correspond to negative feedback.
 The results are shown in Figure \ref{fig:neg}.
 Negative feedback does not destabilize the system,
 yet we are still able to detect the feedback.
+Previous methods could not differentiate between positive and negative feedback.
 
 \begin{figure}
 \begin{tabular}{cc}
@@ -944,10 +973,6 @@ time (sec)
 \begin{figure}
 \end{figure}
 
-\fixme{
-    Should this section's experiments be done using a standard power grid?
-}
-
 \subsection{Quantitative experiments}
 
 For the experiments in this section, we randomly generated 20 different power grids following the same procedure as the previous section.
@@ -958,7 +983,7 @@ A major strength of our method is that it has essentially no false positives.
 We define a false positive to be the detection of an attack when no attack occurred (it does not matter if the value of $\alpha_t$ is correct).
 When no attack is underway, the values of $A^p_t$ are typically less than $10^{-6}$.
 When an attack is underway, the largest values of $A^p_t$ skyrocket to well above $10^{-1}$.
-Therefore, it is easy to set $\tau$ to avoid false positives.
+Therefore, it is easy to set the threshold $\tau$ to avoid false positives.
 
 Next, we evaluate the accuracy of our method.
 We define the accuracy at time point $t$ to be the fraction of $\alpha_t$ values that correctly predict the attacked bus.
@@ -966,11 +991,6 @@ Figure \ref{fig:accuracy} shows that the longer we wait to declare an attack occ
 If we are willing to wait two seconds after an attack begins before taking corrective action,
 then we will essentially always be taking corrective action against the attacked bus.
 In practice, two seconds is not enough time for an attack to have caused the state values $\x_t$ to exceed their safe operating values.
-
-\fixme{
-    I want to perform significantly more than 20 trials.
-    I also want to show that the plot looks essentially the same if we use smaller/larger powergrids.
-}
 
 %The next important measure is the method's accuracy.
 %That is, when we identify an attack
