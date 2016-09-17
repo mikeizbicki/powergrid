@@ -962,17 +962,41 @@ Direct inspection of the $A^p_t$ method, on the other hand gives us both.
 \section{Simulation}
 \label{sec:sim}
 
-We demonstrate the effectiveness of our method on two sets of simulated experiments.
-The first sets of experiments show qualitatively the values of $f_t(i)$ in different scenarios.
-These experiments demonstrate that our method is fast, robust to the number of attacks, and able to distinguish between positive and negative feedback.
-The second experiments show quantitatively that our method accurately determines which bus is being attacked.
+In this section we empirically compare the performance of the full rank and the rank-1 method at identifying the compromised buses.
+We show that:
+\begin{enumerate}
+%(\emph{i})
+\item
+the rank-1 method has significantly lower error than the full rank method;
+%(\emph{ii})
+\item
+the rank-1 method is significantly faster than the full rank rank method;
+and
+%(\emph{iii})
+\item
+the rank-1 method can distinguish between positive and negative feedback.
+\end{enumerate}
+We begin with a qualitative demonstration of these facts,
+and conclude with a quantitative demonstration.
+
+%We present two sets of experiments.
+%The first set shows qualitatively how the values of $f_t(i)$ are affected by different attack scenarios.
+%These experiments demonstrate that our method robust to the number of attacks, and able to distinguish between positive and negative feedback.
+%The second set of experiments shows quantitatively that the rank-1 method has high accuracy on many power system architectures.
 
 \subsection{Qualitative experiments}
 
-All experiments in this section use a single randomly generated power grid with 100 generators and 100 load buses.
-Standard methods for generating random graphs do not exhibit the topological and electrical properties of real world power grids \cite{hines2010topological}.
-Therefore, we follow the \emph{clusterSmallWorld} procedure for generating the power grid \cite{wang2010generating}.
-This procedure was designed specifically for modeling real world power grid structures.
+All experiments in this section use a single randomly generated power grid with 20 generator and 20 load buses.
+We test on this small grid size because the full rank method cannot scale to larger problems.
+On this size problem, a single iteration of the rank-1 method takes about 1 second,
+and a single iteration of the full rank method takes about 1 minute.
+On a problem with 100 generators and 100 loads,
+a single iteration of the rank-1 method takes about 5 seconds,
+and a single iteration of the full rank method takes over an hour.
+
+We follow the \emph{clusterSmallWorld} procedure for generating the power grid \cite{wang2010generating}.
+Standard methods for generating random graphs do not exhibit the topological and electrical properties of real world power grids \cite{hines2010topological},
+but \emph{clusterSmallWorld} was designed specifically for modeling real world power grids.
 An outline of the procedure is:
 First generate a random number of ring shaped grids with fewer than 10 buses each;
 Then randomly add connections between the buses until the average degree of each node is 4.
@@ -986,21 +1010,14 @@ Once the grid has been generated, a load input ($\uu_t$) is sampled from a Gauss
 %The paper claims to accurately model nation-sized powergrids (more than 1000 buses).
 %\cite{schultz2014random}
 
-For the first experiment, we initiated an attack at time 0.1 seconds on a random bus $i$ getting feedback from bus $j$.
-We model the attack by setting all the entries of $A^p_t$ to zero except for the entry in row $i$ and column $j$.
-This entry is set so that the matrix $A+A^p_t$ has maximum eigenvalue 1.05,
+The first experiment has 6 separate scenarios that test how the rank-1 and full rank algorithms respond to 1, 3, and 5 compromised buses.
+In each case, the initiate begins at time 0.1 seconds.
+The $A^p_t$ matrix is selected so that $(A+A^p_t)$ has maximum eigenvalue 1.05,
 ensuring that the attack destabilizes the system.
-Figure $\ref{fig:destab}$ shows the results of running our UKF algorithm on the resulting system.
-Our estimate of $A^p_t$ quickly converges to the correct value.
+Figure $\ref{fig:destab}$ shows the results.
+The rank-1 algorithm clearly has better qualitative performance on this particular problem.
 
 \begin{figure*}
-%\begin{tabular}{ccc}
-
-
-
-%\\
-
-%\end{tabular}
 \begin{tikzpicture}
 \small
 \node at (8.5,0) {
@@ -1028,176 +1045,105 @@ Our estimate of $A^p_t$ quickly converges to the correct value.
 \node at (0,4.2) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike3-gaussian-Unobserved-rank1-ukf-Xhat}};
 \node at (5.5,4.2) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike5-gaussian-Unobserved-rank1-ukf-Xhat}};
 
-\node at (-5.5,6.75) {1 attack};
-\node at (0,6.75) {3 attacks};
-\node at (5.5,6.75) {5 attacks};
+\node at (-5.755,6.75) {1 compromised bus};
+\node at (-0.25,6.75) {3 compromised buses};
+\node at (5.25,6.75) {5 compromised buses};
 
-\draw (-8.25,-2.5) -- (-6,-2.5);
-\draw[->] (-5,-2.5) -- (7.75,-2.5);
+\draw (-8.25,-2.65) -- (-7.30,-2.65);
+\draw[->] (-4.2,-2.65) -- (7.75,-2.65);
+\node at (-5.75,-2.65) {simulation time (sec)};
 
-\node at (-5.5,-2.5) {time};
+\node at (-8.35,-2.25) {0.0};
+\node at (-7.05,-2.25) {0.5};
+\node at (-5.75,-2.25) {1.0};
+\node at (-4.45,-2.25) {1.5};
+\node at (-3.25,-2.25) {2.0};
 
-\node at (-6.75,1.65) {\color{red} attack initiated};
-\draw[->,red] (-7.75,1.65) -- (-8.15,1.65);
+\node at (-6.75,1.65) {\color{darkgray} attack initiated};
+\draw[->,darkgray] (-7.75,1.65) -- (-8.15,1.65);
 
-\node at (-5,4.25) {\color{red} compromised load};
+\node at (-5,4.25) {\color{red} compromised buses};
 \draw[->,red] (-6,4.45) -- (-6.25,4.75);
 
-\node at (4.25, 1.5) {\color{darkgreen} uncompromised load};
+\node at (4.3, 1.5) {\color{darkgreen} uncompromised buses};
 \draw[->,green] (5.25,1.3) -- (5.5,1.2);
 \end{tikzpicture}
 \caption{
     Each line in the figures above represents the predicted positive feedback of a particular load bus.
-    Buses under attack are drawn in {\textbf{\color{red}bold red}},
-    and buses not under attack are drawn in {\color{darkgreen}thin green}.
+    Compromised buses are drawn in {\textbf{\color{red}bold red}},
+    and uncompromised buses are drawn in {\color{darkgreen}thin green}.
     For all times $t$ before the attack begins, each bus $i$ has $f_i(t)$ near zero.
+    After the attack begins, the $f_i(t)$ deviate from zero.
     Our method is correctly identifying the attacked buses whenever the red lines are above the green lines.
-    In the top row, we see that our rank 1 approximation of $K^{LG}$ provides relatively accurate predictions even when the number of attacks increases.
-    In the bottom row, we see that use of the full $K^{LG}$ matrix actually hurts our performance.
-    This is because we have too many parameters to estimate.
+    In the top row, we see that our rank-1 approximation of $K^{LG}$ provides relatively accurate predictions even when the number of attacks increases and the rank-1 approximation is no longer true.
+    In the bottom row, we see that use of the full $K^{LG}$ matrix makes identification more difficult.
 }
+\label{fig:destab}
 \end{figure*}
 
-%\begin{figure}
-%\begin{tabular}{cc}
-%\includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1.eps}
-%&
-%\includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1-ukf.eps}
-%\\
-%time (sec)
-%&
-%time (sec)
-%\end{tabular}
-%\caption{
-    %(\emph{left})
-    %The values of the system states $\x_t$ as a function of time.
-    %Each component of $\x_t$ is drawn as a separate line.
-    %Before the attack (at time 0.1 sec), all system variables are essentially zero.
-    %After the attack, the system is destabilized.
-    %(\emph{right})
-    %The values of $f_t(i)$ as a function of time.
-    %Each value of $i$ is drawn as a separate line.
-    %The true attack location is indicated in red.
-    %Our method quickly identifies the true location,
-    %and the estimate quickly converges to the true value.
-    %}
-%\label{fig:destab}
-%\end{figure}
-
-Our next experiment shows how our predictions scale as a function of the number of attacks.
-We repeat the same procedure as above, but add more nonzero entries to $A^p_t$.
-The results of 3 and 5 nonzero entries are shown in Figure \ref{fig:numattacks}.
-The rank-1 approximation of $K^L$ does fairly well even when the number of attacks increases.
-This is surprising because the true $K^L$ matrix has rank equal to the number of attacks.
-
-%\begin{figure}
-%\begin{tabular}{cc}
-   %\includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike3-gaussian-Unobserved-rank1-ukf.eps}
-%&  \includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike5-gaussian-Unobserved-rank1-ukf.eps}
-%\\
-%time (sec)
-%&
-%time (sec)
-%\end{tabular}
-%\caption{
-    %The values of $f_t(i)$ with 3 attacks (left) and 5 attacks (right).
-    %As above, the attack locations are colored in red and non-attack locations are green.
-    %In both cases, our method quickly identifies that an attack occurs.
-    %In the case of 5 attacks, the rank-1 approximation of $A^p_t$ is not accurate enough to get a correct prediction of the values for all attack locations.
-    %Importantly, however, the value of $\alpha_t$ remains a correct attack location.
-    %If this bus is isolated, then the system will stabilize.
-%}
-%\label{fig:numattacks}
-%\end{figure}
-
-%Then we apply 1, 3, or 5 attacks to the power grid on random buses.
-%The results are shown in Figure \ref{fig:numattacks}.
-%As expected, our rank-1 UKF has good accuracy when there is a single attack.
-%Somewhat surprisingly, this method continues to work well even when there are multiple attacks.
-%The displayed results are for only a single power grid, but the results are qualitatively similar on other power grids as well.
-
-%\begin{figure*}
-%\begin{tabular}{ccc}
-%\\ 1 Attack
-%&  3 Attacks
-%&  5 Attacks
-%%\\ \includegraphics[width=0.33\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1.eps}
-%%&  \includegraphics[width=0.33\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike3-gaussian-Unobserved-rank1.eps}
-%%&  \includegraphics[width=0.33\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike5-gaussian-Unobserved-rank1.eps}
-%\\ \includegraphics[width=0.3\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1-ukf.eps}
-%&  \includegraphics[width=0.3\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike3-gaussian-Unobserved-rank1-ukf.eps}
-%&  \includegraphics[width=0.3\textwidth]{img/4-clusterSmallWorld-100-addUniform-400-spike5-gaussian-Unobserved-rank1-ukf.eps}
-%\end{tabular}
-%\caption{
-    %This figure shows the predicted attack levels on the same power grid (with 100 loads and 100 generators) in three different scenarios.
-    %In each scenario, the attack happens at time 0.1 seconds.
-    %The only difference between the scenarios is the number of attacks that occurred simulutaneously.
-    %In each plot, the values of the estimated $A^p_t$ matrix are plotted over time.
-    %Each line in the plot corresponds to a single entry in the matrix.
-    %If an entry was actually attacked, then the corresponding line is colored red;
-    %otherwise, the corresponding line is colored green.
-    %In the left figure, only a single attack occurs.
-    %Our algorithm is able to quickly identify the presence of an attack, which bus the attack occurred on, and the strength of the attack.
-    %In the middle figure, three attacks occur simultaneously.
-    %The algorithm is able to quickly identify the presence of an attack, but has slightly slower convergence to its steady state values.
-    %In the right figure, five attacks occur simultaneously.
-    %In this case, the algorithm is able to quickly identify the attack, but incorrectly predicts that some of the attacks are introducing negative feedback.
-    %This is because our algorithm uses a rank 1 approximation of the $A^p_t$ matrix, but the true attack in this case requires a rank 5 matrix.
-    %The closest rank 1 matrix to the attack matrix has negative numbers in the corresponding entries.
-%}
-%\label{fig:numattacks}
-%\end{figure*}
-
-Our last qualitative experiment shows that our UKF method can also detect negative feedback added to the power system.
-We repeat the procedure of the first experiment,
-but set the value of ${A^p_t}^{(i,j)}$ to $-10$.
-Recall that negative values of the $A^p_t$ matrix correspond to negative feedback.
+Next we see that our rank-1 method can differentiate between benign and malicious loads.
+We randomly selected a load $i$ and generator $j$, then set the $i$th row and $j$th column of ${A^p_t}$ to $-10$.
+Recall that negative values of the $A^p_t$ matrix correspond to benign loads.
 The results are shown in Figure \ref{fig:neg}.
 Negative feedback does not destabilize the system,
 yet we are still able to detect the feedback.
-Previous methods could not differentiate between positive and negative feedback.
+The full rank method (not shown) has difficulty with this problem.
 
 \begin{figure}
-\begin{tabular}{cc}
-\includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-20-addUniform-20-spikeNeg-gaussian-Unobserved-rank1.eps}
-&
-\includegraphics[width=0.23\textwidth]{img/4-clusterSmallWorld-20-addUniform-20-spikeNeg-gaussian-Unobserved-rank1-ukf.eps}
-\\
-time (sec)
-&
-time (sec)
-\end{tabular}
+\begin{tikzpicture}
+\small
+\node at (0,0) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=8cm,height=4.5cm]{img/406-clusterSmallWorld-20-addUniform-40-spikeNeg-gaussian-Unobserved-rank1-ukf-Xhat}};
+\node at (-0.35,-2.95) {simulation time (sec)};
+\node at (-4.5,0) {\rotatebox{90}{$f_i(t)$}};
+
+\node at (-3.8,-2.5) {0.0};
+\node at (-2.05,-2.5) {0.5};
+\node at (-0.35,-2.5) {1.0};
+\node at (1.35,-2.5) {1.5};
+\node at (3.05,-2.5) {2.0};
+
+\node at (-1.75,-1.8) {\color{darkgray}responsive load added};
+\draw[->,darkgray] (-3.25,-1.75) -- (-3.5,-1.75);
+
+\node at (1,-0.8) {\color{red}bus with responsive load};
+\node at (-1,1.8) {\color{darkgreen}buses with normal loads};
+
+\end{tikzpicture}
 \caption{
-    (\emph{left})
-    The values of the system states $\x_t$ as a function of time as in Figure \ref{fig:destab}.
-    The negative feedback is added at time 0.1 seconds.
-    (\emph{right})
-    The values of $f_t(i)$ as a function of time as in Figures \ref{fig:destab} and \ref{fig:numattacks}.
-    The predicted value of the added location goes negative and is clearly separated from the rest.
+    In this simulation, we added a benign frequency responsive load.
+    %In this simulation, negative feedback has been added to the system.
+    %We see that our estimates of $f_i$ correctly go negative.
+    Our rank-1 method is able to quickly identify the load with the responsive feedback.
+    The corresponding value of $f_i(t)$ is negative because the feedback is negative.
+    Previous work cannot distinguish these benign frequency responsive loads from malicious loads,
+    whereas ours can.
     }
 \label{fig:neg}
-\end{figure}
-\begin{figure}
 \end{figure}
 
 \subsection{Quantitative experiments}
 
-For the experiments in this section, we randomly generated 20 different power grids following the same procedure as the previous section.
-In each scenario, we use a single attack initiated at time 0.1 seconds.
-The goal is to show that our method works on many realistic power grids and not just the special case demonstrated above.
+We now explore the quantitative performance of our methods by measuring their performance on many power systems.
+We generated to sets of power grids, one with 20 generators and 20 loads (as in the previous section), and the other with 100 generators and 100 loads.
+The full rank algorithm was run only on the smaller grid
+(because it is computationally infeasible to run it on the larger one),
+and the rank-1 algorithm was run only on both grids.
 
-A major strength of our method is that it has essentially no false positives.
-We define a false positive to be the detection of an attack when no attack occurred (it does not matter if the value of $\alpha_t$ is correct).
-When no attack is underway, the values of $A^p_t$ are typically less than $10^{-6}$.
+A major strength of both methods is that they experienced no false positives.
+We define a false positive to be the detection of an attack when no attack occurred
+(it does not matter if the value of $\alpha_t$ is correct).
+When no attack is underway, the largest entries of $A^p_t$ are typically less than $10^{-6}$.
 When an attack is underway, the largest values of $A^p_t$ skyrocket to well above $10^{-1}$.
 Therefore, it is easy to set the threshold $\tau$ to avoid false positives.
 
-Next, we evaluate the accuracy of our method.
+Finally, we evaluate the method's \emph{accuracy of identification}.
 We define the accuracy at time point $t$ to be the fraction of $\alpha_t$ values that correctly predict the attacked bus.
-Figure \ref{fig:accuracy} shows that the longer we wait to declare an attack occurs (i.e. the larger we set $\tau$), the higher our accuracy is.
-If we are willing to wait two seconds after an attack begins before taking corrective action,
-then we will essentially always be taking corrective action against the attacked bus.
-In practice, two seconds is not enough time for an attack to have caused the state values $\x_t$ to exceed their safe operating values.
+Figure \ref{fig:accuracy} shows that the longer we wait to declare an attack occurs
+(i.e. the larger we set $\tau$), the higher our accuracy is.
+In the case of the rank-1 method detecting a single attack,
+we observed $99\%$ accuracy in under one second.
+Notice that the rank-1 method operating on the 200 bus power system has much higher accuracy than the full rank algorithm operating on the significantly easier 40 bus system.
+The full rank method's accuracy is little better than random guessing after two seconds.
 
 %The next important measure is the method's accuracy.
 %That is, when we identify an attack
@@ -1206,19 +1152,51 @@ In practice, two seconds is not enough time for an attack to have caused the sta
 %For the first experiment, we measured
 
 \begin{figure}
-\begin{tabular}{cc}
-\begin{turn}{90}
-~~~~~~~~~~~~~accuracy of $\alpha_t$
-\end{turn}
-&
-\includegraphics[width=0.4\textwidth, trim= 0 2in 0 2in, clip]{img/clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1-ukf-fraction}
-\\
-& time
-\end{tabular}
+%\begin{tabular}{cc}
+%\begin{turn}{90}
+%~~~~~~~~~~~~~accuracy of $\alpha_t$
+%\end{turn}
+%&
+%\includegraphics[width=0.4\textwidth, trim= 0 2in 0 2in, clip]{img/clusterSmallWorld-100-addUniform-400-spike-gaussian-Unobserved-rank1-ukf-fraction}
+%\\
+%& time
+%\end{tabular}
+\begin{tikzpicture}
+\small
+\node at (-0.1,0) {\includegraphics[trim={2cm 5cm 1cm 5cm},clip,width=7.2cm,height=7cm]{img/accuracy}};
+\node at (0.0,-3.5) {simulation time (sec)};
+\node at (-4.7,0) {\rotatebox{90}{accuracy of $\alpha_t$}};
+
+\node at (-1.85,-3) {0.5};
+\node at (-0.1,-3) {1.0};
+\node at (1.65,-3) {1.5};
+\node at (3.45,-3) {2.0};
+
+\node at (-4.1,-2.75) { 0.0 };
+\node at (-4.1,-1.6) { 0.2 };
+\node at (-4.1,-0.5) { 0.4 };
+\node at (-4.1,0.55) { 0.6 };
+\node at (-4.1,1.65) { 0.8 };
+\node at (-4.1,2.8) { 1.0 };
+
+\node at (-1.9,-2.2) {\color{darkgray}attack initiated};
+\draw[darkgray,->] (-2.9,-2.2) -- (-3.3,-2.2);
+
+\node at (2,-1.5) {\color{red}\begin{tabular}{c}full $K^{LG}$\\1 compromised bus\end{tabular}};
+
+\node at (2,0.25) {\color{blue}\begin{tabular}{c}full $K^{LG}$\\5 compromised buses\end{tabular}};
+
+\node at (2,1.95) {\color{blue}\begin{tabular}{c}rank-1 $K^{LG}$\\5 compromised buses\end{tabular}};
+
+\node at (-1.75,3.25) {\color{red}\begin{tabular}{c}rank-1 $K^{LG}$\\1 compromised bus\end{tabular}};
+
+\end{tikzpicture}
 \caption{
-    Immediately after the attack begins, $\alpha_t$ has modest accuracy.
-    Within half a second, $\alpha_t$ has reached 90 percent accuracy.
-    By two seconds, $\alpha_t$ is essentially 100 percent accurate.
+    It takes only about a quarter of a second for our rank-1 method to detect a single attack with 99\% accuracy.
+    As the number of attacks increases, our rank-1 method takes longer to achieve high accuracy.
+    With 5 compromised buses, the attack is detected with 95\% accuracy by two seconds.
+    This is fast enough to implement corrective actions.
+    The full $K^{LG}$ method has much worse accuracy no matter how many buses are compromised.
 }
 \label{fig:accuracy}
 \end{figure}
