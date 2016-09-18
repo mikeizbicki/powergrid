@@ -371,21 +371,38 @@ year = 2013
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-Destabilizing attacks insert positive feedback into a power system.
-This feedback destabilizes the system by changing the power system dynamics,
-which can damage equipment.
-We propose a method for detecting these attacks before they damage equipment.
-We observe that these attacks can be modeled as a reparameterization of the power system's dynamical model.
-Our method uses the Unscented Kalman Filter to jointly estimate both the system states and parameters of the attack.
-We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining accuracy of detection.
-We show empirically that this method successfully identifies complex attacks involving many nodes at once.
+%Destabilizing attacks insert positive feedback into a power system.
+%This feedback destabilizes the system by changing the power system dynamics,
+%which can damage equipment.
+%We propose a method for detecting these attacks before they damage equipment.
+%We observe that these attacks can be modeled as a reparameterization of the power system's dynamical model.
+%Our method uses the Unscented Kalman Filter to jointly estimate both the system states and parameters of the attack.
+%We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining accuracy of detection.
+%We show empirically that this method successfully identifies complex attacks involving many nodes at once.
+
+%We propose a novel method for identifying destabilizing attacks in smart power grids.
+Modern power systems are vulnerable to destabilizing attacks.
+Previous work is able to detect the presence of an attack in a power system,
+but not able to identify the source of the attack.
+We propose and analyze two methods for identifying the source.
+The \emph{standard method} is a standard application of the Unscented Kalman Filter (UKF) and dual state estimation.
+We show that the application of the UKF in this way has poor computational and statistical performance.
+Specifically, we show that if the power grid has $\ell$ loads and $g$ generators,
+the number of states in the filter grows as $O(\ell g)$.
+To address these weaknesses, we propose the \emph{rank-1 method}.
+In this method, the number of states in the filter grows as $O(\ell + g)$.
+This slower growth rate gives better accuracy and scales to larger grid sizes.
 \end{abstract}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
+Smart power grids are becoming more common because they improve the efficiency of power distribution.
+The downside of smart grids is that they are more vulnerable to attack.
 In this paper, we consider failures in smart power grids caused by destabilizing attacks.
+
+An example destabilizing attack is shown in Figure 1.
 Such attacks can be conducted in different ways.
 One of the most common methods for inserting positive feedback is manipulating load consumption by getting feedback from frequency through a simple proportional gain controller.
 \fixme{We need to at least list some other attack types.}
@@ -991,7 +1008,7 @@ At this point, the system operator can take defensive measures such as isolating
     %We
 %}
 
-\section{Connection to previous methods}
+\section{Connection to previous detection methods}
 
 %In the previous section, we formulated our identification method as a dual state estimation problem.
 In this section, we show how the identification methods presented above can be seen as a simplification of a previous detection method we call the UIO/FFT method, which is an extension of the FFT method \cite{amini2015dynamic,amini2015detecting}.
