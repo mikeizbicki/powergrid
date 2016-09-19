@@ -373,7 +373,7 @@ year = 2013
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-In a destabilizing attack against power system, the adversary hacks into the generator or load control mechanisms to insert positive feedback into power system dynamics. The implementation of destabilizing attacks, both on the generation and load sides, have recently been studied. There are also recent advances on how to detect, i.e., realize the presence of, destabilizing attacks in power systems. However, identifying the location(s) of the compromised buses is still an open problem. This is particularly challenging if, as in practice, one does not even know the number of compromised buses. Another challenge is to keep low computational complexity to allow fast attack identification with high accuracy. To address these various issues,
+In a destabilizing attack against power systems, the adversary hacks into the generator or load control mechanisms to insert positive feedback into power system dynamics. The implementation of destabilizing attacks, both on the generation and load sides, have recently been studied. There are also recent advances on how to detect, i.e., realize the presence of, destabilizing attacks in power systems. However, identifying the location(s) of the compromised buses is still an open problem. This is particularly challenging if, as in practice, one does not even know the number of compromised buses. Another challenge is to keep low computational complexity to allow fast attack identification with high accuracy. To address these various issues,
 %
 % form insert positive feedback into a power system.
 %This feedback destabilizes the system by changing the power system dynamics,
@@ -710,7 +710,7 @@ If the entry is positive, then bus $i$ is under attack and the system may destab
 If the entry is negative, then there is a benign frequency-responsive load.
 These loads will never destabilize the system.
 If the entry is zero, there are no frequency-responsive loads.
-Substituting Equation \ref{eq:pos} and \ref{eq:una} into Equation \ref{sys:norm} gives us our final system dynamics under attack:
+Substituting \eqref{eq:pos} and \eqref{eq:una} into \eqref{sys:norm} gives us our final system dynamics under attack:
 \begin{equation}
 \label{sys:attack2}
 \begin{aligned}
@@ -734,28 +734,20 @@ These state measurements are widely available in existing modern power systems t
 \section{Attack Identification Method} \label{sec:method}
 \label{sec:method}
 
-Our attack identification procedure has two phases.
-First we estimate the $K^{LG}$ matrix using one of two methods.
-The \emph{standard method} is a standard application of \emph{dual state estimation}.
-In this technique, we run the Unscented Kalman Filter (UKF) \cite{wan2000unscented} to estimate both the state vector $\x$ and the attack matrix $K^{LG}$ at the same time.
-We see in Section \ref{sec:sim} that this method performs poorly in practice because the $K^{LG}$ matrix is large.
-The \emph{rank-1 method} extends the standard method by making a novel low rank assumption on the $K^{LG}$ matrix.
-This assumption improves both the accuracy and run time of the standard method.
-In the second phase we apply a thresholding procedure to the estimated $K^{LG}$ that identifies the buses under attack.
+Our attack identification procedure has two steps.
+First we estimate the $K^{LG}$ matrix using \emph{dual state estimation}.
+This is a standard technique that applies the Unscented Kalman Filter (UKF) \cite{wan2000unscented} to simultaneously estimate the entries of matrix $K^{LG}$ and the system states $\x$.
+Unfortunately, the standard application of this technique does not work well for our problem.
+It is too slow computationally and has poor accuracy.
+So we introduce a novel rank-1 approximation which lets us effectively apply dual state estimation to our problem.
+Finally, once $K_{LG}$ is estimated, we apply a thresholding procedure to identify the attacked buses.
 
-%Our attack detection procedure has two steps:
-%(\emph{i})
-%First we rewrite the system dynamics of Equation \ref{sys:attack2} in discrete time.
-%This lets us use the Unscented Kalman Filter (UKF) to perform dual state estimation to simultaneously estimate the value of $K^{LG}$ and the system states \cite{wan2000unscented}.
-%Dual state estimation with the UKF is a standard technique,
-%and our main contribution here is the introduction of simplifying assumptions that let us apply the UKF to our power system problem.
-%(\emph{ii})
-%Then, we detect the presence of an attack by thresholding the estimate of $K^{LG}$.
-
-\subsection{The standard method}
+\subsection{Standard dual state estimation and its limitations}
 %Dual state estimation is a standard technique for estimating a dynamical system's parameters at the same time as we estimate the state.
 %It is traditionally described using the system's discrete state equations.
-We begin our presentation by discretizing Equation \ref{sys:attack2} as
+%We describe the naive application of dual state estimation and its limitations with respect to our problem.
+Dual state estimation is traditionally described using the system's discrete state equations,
+so we begin our presentation by discretizing \eqref{sys:attack2} as
 \begin{equation}
 \label{eq:discrete}
 \x_{t+1} = (\timestep A+sBA^p_t+I)\x_t + \timestep B(\uu_t^n+\uu_t^p) + \epsilon.
@@ -766,11 +758,11 @@ and $\epsilon \sim \normal{0}{Q^\epsilon}$ is an error term capturing both model
 
 Now we describe how to estimate the $A^p_t$ matrix.
 Recall that in the definition of $A^p_t$,
-the $K^{LG}$ matrix is unknown and determined by the attacker;
+the $K^{LG}_t$ matrix is unknown and determined by the attacker;
 all other elements are statically known.
-Therefore, to estimate $A^p_t$, it is sufficient to estimate $K^{LG}$.
-We can estimate $K^{LG}_t$ directly using dual state estimation.
-In this technique, we augment the original dynamical system's state variables to also include the elements of $K^{LG}_t$.
+%Therefore, to estimate $A^p_t$, it is sufficient to estimate $K^{LG}_t$.
+%We can estimate $K^{LG}_t$ directly using dual state estimation.
+In dual state estimation, we augment the original dynamical system's state variables to also include the elements of $K^{LG}_t$.
 The resulting augmented system is
 \begin{equation}
 \label{eq:aug}
@@ -831,7 +823,7 @@ In particular, we assume each control input is a centered Gaussian with covarian
 %This assumption is justified experimentally in Section \ref{sec:sim}.
 %We conduct experiments where $\uu^a_t$ and $\uu^m_t$ are highly non-normal,
 %but we still get reasonable results.
-Under these assumptions, we can rewrite the dualized system dynamics described in Equation $\ref{sys:dualized}$ as
+Under these assumptions, we can rewrite the dualized system dynamics described in $\eqref{sys:dualized}$ as
 \begin{equation}
 \label{eq:standard}
 \begin{bmatrix}
@@ -866,24 +858,27 @@ sA + sBA^p_t + I & 0 \\
 where
 \begin{align*}
   \epsilon      &\sim \normal{0}{B(Q^n+Q^p)+Q^\epsilon},
-\\\epsilon^{KL} &\sim\normal{0}{Q^m+Q^{\epsilon_1}}.
+\\\epsilon^{KL} &\sim\normal{0}{Q^m}.
 %\\\epsilon_2 &\sim\normal{0}{Q^m+Q^{\epsilon_2}}.
 \end{align*}
-Observe that the dynamical system described by Equation \ref{eq:standard} is nonlinear because the $K^{LG}$ term appears in the definition of $A^p_t$.
+Observe that the dynamical system described by \eqref{eq:standard} is nonlinear because the $K^{LG}$ term appears in the definition of $A^p_t$.
 It is standard to solve systems of this form using the UKF \cite{wan2000unscented}.
 We defer to the cited paper for details.
 
-The UKF encounters two problems when run on Equation \ref{eq:standard}.
-The first is computational.
+The UKF encounters two problems when run on \eqref{eq:standard}.
+The first is that the problem is \emph{underspecified}.
+The number of parameters we are trying to estimate (i.e. the number of entries in $K^{LG}$) grows as $O(\ell g)$,
+but the size of the observed data (i.e. the size of $\x$) grows at the slower rate of $O(\ell + g)$.
+In general, underspecified problems are difficult to solve without introducing additional statistical assumptions.
+As the size of the power grid increases, the degree of underspecification increases,
+so we would expect this method to have lower accuracy.
+The second problem is computational.
 At each time step,
 the UKF takes the inverse of a matrix whose dimension depends on the number of state variables.
-There are $O(\ell g)$ states in Equation \ref{eq:standard},
-and so the run time of this inverse is $O((\ell g)^3)$.
+There are $O(\ell g)$ states in \eqref{eq:standard},
+and so the runtime of this inversion is $O((\ell g)^3)$.
 This poor scaling makes the standard method impractical to run on power systems with more than about 50 buses.
-The second problem is statistical.
-We are trying to estimate $O(\ell g)$ parameters (the entries of $K^{LG}_t$) using only $O(\ell + g)$ observations (the entries of $\x_t$).
-As we see experimentally in Section \ref{sec:sim}, this is not enough data.
-These limitations of the standard method motivate the rank-1 method, which we describe next.
+These limitations of the standard method motivate our proposed rank-1 method, which we describe next.
 
 \subsection{The rank-1 method}
 
@@ -905,7 +900,7 @@ Specifically, we assume that
 K^{LG}_t=\kL_t\trans{\kG}_{t},
 \end{equation}
 where $\kL_{t}$ and $\kG_{t}$ are column vectors.
-Under this assumption, we can rewrite the standard method's dynamics from Equation $\ref{eq:standard}$ as
+Under this assumption, we can rewrite the standard method's dynamics from $\eqref{eq:standard}$ as
 \begin{equation}
 \begin{bmatrix}
 \x_{t+1} \\
@@ -946,13 +941,12 @@ where
 \\\epsilon_1 &\sim\normal{0}{Q^m+Q^{\epsilon_1}},
 \\\epsilon_2 &\sim\normal{0}{Q^m+Q^{\epsilon_2}}.
 \end{align*}
-This system remains nonlinear but can be solved efficiently using the UKF.
+This system remains nonlinear and is solved using the UKF.
 
 The rank-1 method has improved statistical and computational performance.
-Statistically, there are only $O(\ell+g)$ parameters to estimate in the rank-1 model.
-This is the same as the amount of data we have.
-So we do not expect statistical performance to degrade as the problem size increases,
-as was the case for the standard method.
+Statistically, there are only $O(\ell+g)$ parameters to estimate in the rank-1 method.
+This matches the size of the state vector $\x$, so the problem is no longer underspecified.
+We no longer expect statistical performance to degrade as the problem size increases.
 Computationally, the run time of each iteration of the UKF is only $O((\ell+g)^3)$.
 This is much faster than the $O((\ell g)^3)$ required for the standard method.
 
@@ -963,7 +957,7 @@ This is much faster than the $O((\ell g)^3)$ required for the standard method.
 
 \subsection{Thresholding}
 
-Once matrix $K^{LG}$ is estimated (using either method),
+Once matrix $K^{LG}$ is estimated,
 we apply a thresholding procedure to identify the attack.
 %Our goal based on the three cases for the entries of matrix $K^{LG}$ that we distinguished in Section III.
 Define the function
@@ -1024,7 +1018,7 @@ At this point, the system operator can take defensive measures such as isolating
 %}
 \section{Connection to previous methods}
 
-Recall from Section I that destabilizing attacks in power systems could be detected using an FFT-based method applied to the system state variables, as explained in \cite{amini2015detecting}. A destabilizing attack will introduce new frequencies into the FFT that are not present during normal operation. Whenever these frequencies exceed a pre-specified threshold, we say an attack is happening.
+Recall from Section I that destabilizing attacks in power systems can be detected using an FFT-based method applied to the system state variables, as explained in \cite{amini2015detecting}. A destabilizing attack will introduce new frequencies into the FFT that are not present during normal operation. Whenever these frequencies exceed a pre-specified threshold, we say an attack is happening.
 One can apply the same type of FFT-based method directly to the input measurements in a power system, i.e., to $\uu_t=\uu_t^n + A^p_t\x_t + \uu^p_t$, to also identify the attack. However, this is not a desirable approach in practice due to several reasons, as we explain next.
 
 First, unlike the state variables that are measured using advanced sensors such as PMUs at high resolutions, e.g., at 60 to 120 samples per second, the input signals, i.e., the load and generation levels, are metered at low resolutions, e.g., once every one to 15 minutes. These low resolution measurements do not allow observing the new frequencies that would be present, e.g., at 0.26 Hz \cite{amini2015detecting}, under an attack.
@@ -1095,12 +1089,12 @@ and then conclude with a quantitative demonstration.
 \begin{figure*}
 \begin{tikzpicture}
 \small
-\node at (8.35,0) {
+\node at (8.35,-0.25) {
     %\rotatebox{90}{$f_i(t)$}
     \rotatebox{90}{standard method}
     };
 
-\node at (8.35,4.2) {
+\node at (8.35,3.6) {
     %\rotatebox{90}{$f_i(t)$}
     \rotatebox{90}{proposed rank-1 method}
     };
@@ -1109,20 +1103,20 @@ and then conclude with a quantitative demonstration.
     \rotatebox{90}{$f_i(t)$}
 };
 \draw (-9,-2) -- (-9,-0.5);
-\draw[->] (-9,0.5) -- (-9,6.1);
+\draw[->] (-9,0.5) -- (-9,5.3);
 
 
-\node at (-5.5,0) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike-gaussian-Unobserved-fullKL-ukf-Xhat}};
-\node at (0,0) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike3-gaussian-Unobserved-fullKL-ukf-Xhat}};
-\node at (5.5,0) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike5-gaussian-Unobserved-fullKL-ukf-Xhat}};
+\node at (-5.5,-0.25) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike-gaussian-Unobserved-fullKL-ukf-Xhat}};
+\node at (0,-0.25) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike3-gaussian-Unobserved-fullKL-ukf-Xhat}};
+\node at (5.5,-0.25) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike5-gaussian-Unobserved-fullKL-ukf-Xhat}};
 
-\node at (-5.5,4.2) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike-gaussian-Unobserved-rank1-ukf-Xhat}};
-\node at (0,4.2) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike3-gaussian-Unobserved-rank1-ukf-Xhat}};
-\node at (5.5,4.2) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=4cm]{img/409-clusterSmallWorld-20-addUniform-40-spike5-gaussian-Unobserved-rank1-ukf-Xhat}};
+\node at (-5.5,3.6) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike-gaussian-Unobserved-rank1-ukf-Xhat}};
+\node at (0,3.6) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike3-gaussian-Unobserved-rank1-ukf-Xhat}};
+\node at (5.5,3.6) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=6cm,height=3.5cm]{img/409-clusterSmallWorld-20-addUniform-40-spike5-gaussian-Unobserved-rank1-ukf-Xhat}};
 
-\node at (-5.755,6.75) {1 compromised bus};
-\node at (-0.25,6.75) {3 compromised buses};
-\node at (5.25,6.75) {5 compromised buses};
+\node at (-5.755,5.75) {1 compromised bus};
+\node at (-0.25,5.75) {3 compromised buses};
+\node at (5.25,5.75) {5 compromised buses};
 
 \draw (-8.25,-2.65) -- (-7.30,-2.65);
 \draw[->] (-4.2,-2.65) -- (7.75,-2.65);
@@ -1134,14 +1128,14 @@ and then conclude with a quantitative demonstration.
 \node at (-4.45,-2.25) {1.5};
 \node at (-3.25,-2.25) {2.0};
 
-\node at (-6.75,1.65) {\color{darkgray} attack initiated};
-\draw[->,darkgray] (-7.75,1.65) -- (-8.15,1.65);
+\node at (-6.75,1.25) {\color{darkgray} attack initiated};
+\draw[->,darkgray] (-7.75,1.25) -- (-8.15,1.25);
 
-\node at (-5,4.25) {\color{red} compromised buses};
-\draw[->,red] (-6,4.45) -- (-6.25,4.75);
+\node at (-5,3.75) {\color{red} compromised buses};
+\draw[->,red] (-6,3.95) -- (-6.15,4.15);
 
-\node at (4.3, 1.5) {\color{darkgreen} uncompromised buses};
-\draw[->,green] (5.25,1.3) -- (5.5,1.2);
+\node at (4.3, 1.1) {\color{darkgreen} uncompromised buses};
+\draw[->,green] (5.25,0.9) -- (5.5,0.8);
 \end{tikzpicture}
 \caption{
     Each line in the figures above represents the predicted positive feedback of a particular load bus.
@@ -1151,7 +1145,7 @@ and then conclude with a quantitative demonstration.
     After the attack begins, the $f_i(t)$ deviate from zero.
     Our method is correctly identifying the attacked buses whenever the red lines are above the green lines.
     In the top row, we see that our rank-1 approximation of $K^{LG}$ provides relatively accurate predictions even when the number of attacks increases and the rank-1 approximation is no longer true.
-    In the bottom row, we see that use of the full $K^{LG}$ matrix makes identification more difficult.
+    In the bottom row, we see that the standard method has poor accuracy.
 }
 \label{fig:destab}
 \end{figure*}
@@ -1265,12 +1259,13 @@ The standard method's accuracy is little better than random guessing after two s
 \node at (0.0,-3.5) {simulation time (sec)};
 \node at (-4.7,0) {\rotatebox{90}{accuracy of $\alpha_t$}};
 
+\node at (-3.65,-3) {0.0};
 \node at (-1.85,-3) {0.5};
 \node at (-0.1,-3) {1.0};
 \node at (1.65,-3) {1.5};
 \node at (3.45,-3) {2.0};
 
-\node at (-4.1,-2.75) { 0.0 };
+\node at (-4.1,-2.7) { 0.0 };
 \node at (-4.1,-1.6) { 0.2 };
 \node at (-4.1,-0.5) { 0.4 };
 \node at (-4.1,0.55) { 0.6 };
