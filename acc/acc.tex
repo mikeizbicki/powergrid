@@ -42,7 +42,7 @@
 
 \begin{filecontents}{paper.bib}
 @inproceedings{wan2000unscented,
-  title={The unscented Kalman filter for nonlinear estimation},
+  title={The unscented {K}alman filter for nonlinear estimation},
   author={Wan, Eric A and Van Der Merwe, Rudolph},
   booktitle={Adaptive Systems for Signal Processing, Communications, and Control Symposium 2000. AS-SPCC. The IEEE 2000},
   pages={153--158},
@@ -61,7 +61,7 @@
 }
 
 @inproceedings{padilla2010adaptive,
-  title={An adaptive-covariance-rank algorithm for the unscented Kalman filter},
+  title={An adaptive-covariance-rank algorithm for the unscented {K}alman filter},
   author={Padilla, Lauren E and Rowley, Clarence W},
   booktitle={49th IEEE Conference on Decision and Control (CDC)},
   pages={1324--1329},
@@ -102,7 +102,7 @@
 }
 
 @article{ghahremani2011online,
-  title={Online state estimation of a synchronous generator using unscented Kalman filter from phasor measurements units},
+  title={Online state estimation of a synchronous generator using unscented {K}alman filter from phasor measurements units},
   author={Ghahremani, Esmaeil and Kamwa, Innocent},
   journal={IEEE Transactions on Energy Conversion},
   volume={26},
@@ -124,7 +124,7 @@
 }
 
 @article{ghahremani2011dynamic,
-  title={Dynamic state estimation in power system by applying the extended Kalman filter with unknown inputs to phasor measurements},
+  title={Dynamic state estimation in power system by applying the extended {K}alman filter with unknown inputs to phasor measurements},
   author={Ghahremani, Esmaeil and Kamwa, Innocent},
   journal={IEEE Transactions on Power Systems},
   volume={26},
@@ -136,7 +136,7 @@
 
 @article{wang2012alternative,
   title={An alternative method for power system dynamic state estimation based on unscented transform},
-  author={Wang, Shaobu and Gao, Wenzhong and Meliopoulos, AP Sakis},
+  author={Wang, Shaobu and Gao, Wenzhong and Meliopoulos, A.P. Sakis},
   journal={IEEE Transactions on Power Systems},
   volume={27},
   number={2},
@@ -146,7 +146,7 @@
 }
 
 @article{qing2015decentralized,
-  title={Decentralized unscented Kalman filter based on a consensus algorithm for multi-area dynamic state estimation in power systems},
+  title={Decentralized unscented {K}alman filter based on a consensus algorithm for multi-area dynamic state estimation in power systems},
   author={Qing, Xiangyun and Karimi, Hamid Reza and Niu, Yugang and Wang, Xingyu},
   journal={International Journal of Electrical Power \& Energy Systems},
   volume={65},
@@ -268,7 +268,7 @@
 }
 
 @Article{FRL1,
-author = {A.~Molina-Garcia¿ and F.~Bouffard and D.~S.~Kirschen},
+author = {Molina-Garcia, Angel and Bouffard, François and Kirschen, Daniel S.},
 title = {Decentralized Demand-Side Contribution to Primary Frequency Control},
 journal = {IEEE Trans. on Power Systems},
 volume = 26,
@@ -279,7 +279,7 @@ year = 2011
 }
 
 @Article{FRL2,
-author = {J.~A.~Short and D.~G.~Infield and L.~L.~Freris},
+author = {Short, Joe and Infield, David and Freris, Leon L.},
 title = {Stabilization of Grid Frequency Through Dynamic Demand Control},
 journal = {IEEE Trans. on Power Systems},
 volume = 22,
@@ -290,7 +290,7 @@ year = 2007
 }
 
 @Article{FRL3,
-author = {C.~Zhao and U.~Topcu and S.~H.~Low},
+author = {Zhao, Changhong and Topcu, Ufuk and Low, Steven H.},
 title = {Optimal Load Control via Frequency Measurement and Neighborhood Area Communication},
 journal = {IEEE Trans. on Power Systems},
 volume = 28,
@@ -311,7 +311,7 @@ year = 2013
 
 @inproceedings{Demarco1996,
   title={The potential for malicious control in a competitive power systems environment},
-  author={DeMarco, Christopher L and Sariashkar, JV and Alvarado, Fernando},
+  author={DeMarco, Christopher L. and Sariashkar, J.V. and Alvarado, Fernando},
   booktitle={Control Applications, 1996., Proceedings of the 1996 IEEE International Conference on},
   pages={462--467},
   year={1996},
@@ -331,7 +331,7 @@ year = 2013
 
 @article{Marnerides2014,
   title={Power consumption profiling using energy time-frequency distributions in smart grids},
-  author={Marnerides, Angelos K and Smith, Paul and Schaeffer-Filho, Alberto and Mauthe, Andreas},
+  author={Marnerides, Angelos K. and Smith, Paul and Schaeffer-Filho, Alberto and Mauthe, Andreas},
   journal={IEEE Communications Letters},
   volume={19},
   number={1},
@@ -374,11 +374,6 @@ year = 2013
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 In a destabilizing attack against power systems, the adversary hacks into the generator or load control mechanisms to insert positive feedback into power system dynamics. The implementation of destabilizing attacks, both on the generation and load sides, have recently been studied. There are also recent advances on how to detect, i.e., realize the presence of, destabilizing attacks in power systems. However, identifying the location(s) of the compromised buses is still an open problem. This is particularly challenging if, as in practice, one does not even know the number of compromised buses. Another challenge is to keep low computational complexity to allow fast attack identification with high accuracy. To address these various issues,
-%
-% form insert positive feedback into a power system.
-%This feedback destabilizes the system by changing the power system dynamics,
-%which can damage equipment.
-%In this paper, we propose a method for detecting destabilizing attacks.
 we observe in this paper that destabilizing attacks can be modeled as a reparameterization of the power system's dynamical model. Therefore, we propose an attack detection method that uses the Unscented Kalman Filter to jointly estimate both the system states and parameters of the attack.
 We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining accuracy of detection.
 We show empirically that this method successfully identifies complex attacks involving many buses.
@@ -451,7 +446,7 @@ The main tool that we use in this paper is the Unscented Kalman Filter (UKF) to 
 
 
 
-This paper belongs to the family of studies that address destabilizing attacks against power systems. While the focus so far has been mostly on the definition and implementation of such attacks \cite{Demarco1996, Mohsenian-Rad2010, amini2015dynamic}, on the methods to protect the power system against such attacks \cite{Pasqualetti2012, AminiJournal2015, Marnerides2014}, and occasionally on methods to detect such attacks \cite{amini2015detecting}, the focus in this paper is on the less explored topic of identifying the attack by finding the location(s) of the compromised buses.
+This paper belongs to the family of studies that address destabilizing attacks against power systems. While the focus so far has been mostly on the definition and implementation of such attacks \cite{Demarco1996, Mohsenian-Rad2010, amini2015dynamic}, on the methods to protect the power system against such attacks \cite{Pasqualetti2012, Marnerides2014}, and occasionally on methods to detect such attacks \cite{amini2015detecting}, the focus in this paper is on the less explored topic of identifying the attack by finding the location(s) of the compromised buses.
 
 In terms of the methodology that is used in this paper, the UKF has been used before for power system problems, e.g., in \cite{ghahremani2011online} to estimate the rotor angle and speed in synchronous generators. However, no joint estimation is used, and the system is not under attack. A more recent analysis is presented in \cite{ghahremani2016local} to estimate the parameters of the motor controller and bus loads. Again, the system is not under attack.
 
