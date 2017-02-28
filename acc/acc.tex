@@ -347,11 +347,14 @@ year = 2013
 
 \title{\LARGE \bf
     Identification of Destabilizing Attacks in Power Systems
-    \thanks{The authors are with the Bourns College of Engineering, University of California, Riverside, CA, USA.
-    This work was supported in part by the National Science Foundation (NSF) grant ECCS/AFOSR  1462530.}
+    \thanks{
+        This work was supported in part by the National Science Foundation (NSF) grant ECCS/AFOSR  1462530.
+        The authors are with the Bourns College of Engineering, University of California, Riverside, CA, USA.
+    Emails: {\tt mike@izbicki.me}, {\tt saamini@ece.ucr.edu}, {\tt cshelton@cs.ucr.edu}, {\tt hamed@ece.ucr.edu}.
+    }
 }
 
-\author{ Mike Izbicki, Sajjad Amini, Christian Shelton, and Hamed Mohsenian-Rad}
+\author{ Mike Izbicki, Sajjad Amini, Christian R. Shelton, and Hamed Mohsenian-Rad}
 %\author{Albert Author$^{1}$ and Bernard D. Researcher$^{2}$% <-this % stops a space
 %\thanks{*This work was not supported by any organization}% <-this % stops a space
 %\thanks{$^{1}$Albert Author is with Faculty of Electrical Engineering, Mathematics and Computer Science,
@@ -373,9 +376,9 @@ year = 2013
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-In a destabilizing attack against power systems, the adversary hacks into the generator or load control mechanisms to insert positive feedback into power system dynamics. The implementation of destabilizing attacks, both on the generation and load sides, have recently been studied. There are also recent advances on how to detect, i.e., realize the presence of, destabilizing attacks in power systems. However, identifying the location(s) of the compromised buses is still an open problem. This is particularly challenging if, as in practice, one does not even know the number of compromised buses. Another challenge is to keep low computational complexity to allow fast attack identification with high accuracy. To address these various issues,
-we observe in this paper that destabilizing attacks can be modeled as a reparameterization of the power system's dynamical model. Therefore, we propose an attack detection method that uses the Unscented Kalman Filter to jointly estimate both the system states and parameters of the attack.
-We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining accuracy of detection.
+In a destabilizing attack against a power system, the adversary hacks into generators or load control mechanisms to insert positive feedback into the power system dynamics. The implementation of destabilizing attacks, both on the generation and load sides, have recently been studied. There are also recent advances on how to detect, i.e., realize the presence of, destabilizing attacks in power systems. However, identifying the location(s) of the compromised buses is still an open problem. This is particularly challenging if, as in practice, one does not even know the number of compromised buses. Another challenge is to keep the computational complexity low to allow fast attack identification with high accuracy. To address these various issues,
+we observe in this paper that destabilizing attacks can be modeled as a reparameterization of the power system's dynamical model. Therefore, we propose an attack detection method that uses the unscented Kalman filter to jointly estimate both the system states and parameters of the attack.
+We also propose a low-rank modification to the Kalman filter that improves computational efficiency while maintaining the detection accuracy.
 We show empirically that this method successfully identifies complex attacks involving many buses.
 \end{abstract}
 
@@ -383,17 +386,20 @@ We show empirically that this method successfully identifies complex attacks inv
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-In this paper, we consider attacks against power system stability. Such attacks can be conducted in different ways, either on the generation side \cite{Pasqualetti2012, Demarco1996} or on the load side \cite{Mohsenian-Rad2010, Marnerides2014, amini2015dynamic}. Either way it essentially involves inserting positive feedback into the various power system control mechanisms.
+In this paper, we consider attacks against power system stability. Such attacks can be conducted in different ways, either on the generation side \cite{Demarco1996, Pasqualetti2012} or on the load side \cite{amini2015dynamic, Marnerides2014, Mohsenian-Rad2010}. Either way they essentially involve inserting positive feedback into various power system control mechanisms.
 
-Recent work has made advances on how to \emph{detect}, i.e., realize the presence of, destabilizing attacks in power systems. Specifically, in \cite{amini2015detecting}, a detection methodology is proposed that works based on applying fast fourier transform (FFT) to system measurements. It uses the fact that a destabilizing attack will introduce new frequencies into the FFT that are not present during normal operation. Therefore, the presence of such new frequencies beyond certain pre-specified magnitude thresholds indicate the presence of a destabilizing attack.
+Recent work has made advances on how to \emph{detect} destabilizing attacks in power systems. 
+Specifically, \cite{amini2015detecting} applies the fast Fourier transform (FFT) to system measurements. 
+It detects frequencies that a destabilizing attack adds that are not present during normal operation. 
+The presence of such new frequencies beyond certain pre-specified magnitude thresholds indicate the presence of a destabilizing attack.
 
-In this paper, we move one step ahead and address the open problem of \emph{identifying} destabilizing attacks against power systems by only monitoring state variables. That is, we devise a method that examines the state variables data from power system sensors such as phasor measurement units (PMUs) to indicate at which exact power system buses (i.e., nodes) the load and/or generation are compromised.
+In this paper, we move one step ahead and address the open problem of \emph{identifying} destabilizing attacks against power systems by only monitoring state variables. That is, we devise a method that examines the state-variable data from power system sensors such as phasor measurement units (PMUs), to indicate at which exact power system buses (i.e., nodes) the load and/or generation are compromised.
 
 Our proposed method has three main properties:
 
 \begin{enumerate}
 
-\item It does not require prior knowledge on the number of buses that are compromised. That is, as in practice, we assume that the grid operator is not initially aware of how many buses are compromised. Nevertheless, our method can identify which buses are compromised.
+\item It does not require prior knowledge of the number of buses that are compromised. That is, as in practice, we assume that the grid operator is not initially aware of how many buses are compromised. Nevertheless, our method can identify which buses are compromised.
 
 \item Prior methods, e.g., in \cite{amini2015detecting}, often analyze the attack at each individual bus, which would allow attack identification only if the method is applied several times separately on every bus. In contrast, our method naturally identifies attacks on the entire system considered as a whole. This reduces the computation time.
 
@@ -401,7 +407,7 @@ Our proposed method has three main properties:
 
 \end{enumerate}
 
-The main tool that we use in this paper is the Unscented Kalman Filter (UKF) to perform dual state estimation to estimate an unknown attack matrix. We then identify the attack location(s) through a proper thresholding mechanism applied to the entries of the estimated attack matrix.
+The main tool that we use in this paper is the unscented Kalman filter (UKF) to perform dual state estimation to estimate an unknown attack matrix. We then identify the attack location(s) through a proper thresholding mechanism applied to the entries of the estimated attack matrix.
 
 
 
@@ -446,15 +452,15 @@ The main tool that we use in this paper is the Unscented Kalman Filter (UKF) to 
 
 
 
-This paper belongs to the family of studies that address destabilizing attacks against power systems. While the focus so far has been mostly on the definition and implementation of such attacks \cite{Demarco1996, Mohsenian-Rad2010, amini2015dynamic}, on the methods to protect the power system against such attacks \cite{Pasqualetti2012, Marnerides2014}, and occasionally on methods to detect such attacks \cite{amini2015detecting}, the focus in this paper is on the less explored topic of identifying the attack by finding the location(s) of the compromised buses.
+This paper belongs to the family of studies that address destabilizing attacks against power systems. While the focus so far has been mostly on the definition and implementation of such attacks \cite{amini2015dynamic, Demarco1996, Mohsenian-Rad2010}, on the methods to protect the power system against such attacks \cite{Marnerides2014, Pasqualetti2012}, and occasionally on methods to detect such attacks \cite{amini2015detecting}, the focus in this paper is on the less explored topic of identifying the attack by finding the location(s) of the compromised buses.
 
-In terms of the methodology that is used in this paper, the UKF has been used before for power system problems, e.g., in \cite{ghahremani2011online} to estimate the rotor angle and speed in synchronous generators. However, no joint estimation is used, and the system is not under attack. A more recent analysis is presented in \cite{ghahremani2016local} to estimate the parameters of the motor controller and bus loads. Again, the system is not under attack.
+In terms of the methodology used in this paper, the UKF has been used before for power system problems, e.g., to estimate the rotor angle and speed in synchronous generators \cite{ghahremani2011online}. However, no joint estimation is used, and the system is not under attack. A more recent analysis estimates the parameters of the motor controller and bus loads \cite{ghahremani2016local}. Again, the system is not under attack.
 
 %\cite{ghahremani2011dynamic}
 %Another EKF-UI paper by the same authors.
 %\cite{ghahremani2016local}
 
-This paper shows through numerical results that the current power system monitoring systems would require calculation of a large Jacobian matrix if one wants to apply the UKF without modification for the purpose of identifying destabilizing attacks. In this regard, the current study is related also to a thread of work, such as in \cite{wang2012alternative, qing2015decentralized}, that similarly have to deal with the computational issues that arise when applying the UKF to power systems. Again, these studies do not address the power system under attack and the details of the analysis are different from those in this paper.
+This paper shows through numerical results that the current power system monitoring systems would require calculation of a large Jacobian matrix if one wants to apply the UKF without modification for the purpose of identifying destabilizing attacks. In this regard, the current study is related also to a thread of work, such as in \cite{qing2015decentralized, wang2012alternative}, that similarly have to deal with the computational issues that arise when applying the UKF to power systems. Again, these studies do not address the power system under attack and the details of the analysis are different from those in this paper.
 
 
 %They propose using the UKF to avoid the need for a Jacobian, both improving runtime and accuracy.
@@ -485,9 +491,19 @@ This paper shows through numerical results that the current power system monitor
 \begin{tikzpicture}
 \small
 
+\node[draw=red,fill=red,fill opacity=0.05,circle,minimum width=1.5cm] (8) at (0.25,1.6) {};
+\node[draw=red,fill=red,fill opacity=0.05,circle,minimum width=1.5cm] (3) at (3.5,1.25) {};
+\draw[red,thick,->] (3) to[out=120,in=20] (8);
+
 %\node at (0,10) {};
 \node at (0,4.75) {
     \begin{tikzpicture}
+
+    \draw[fill=green,draw opacity=0,fill opacity=0.05] (0,0.3) -- (8.20,0.3) -- (8.20,1.95) -- (0,1.95);
+    \draw[dashed,darkgreen] (0,0.3) -- (8.2,0.3);
+    \draw[dashed,darkgreen] (8.2,1.95) -- (0,1.95);
+
+    \node at (4.25,0.5) {\color{darkgreen} safe operating range};
     \begin{axis}
         [ domain=-30:80
         , xmin=-30
@@ -508,11 +524,6 @@ This paper shows through numerical results that the current power system monitor
     \node at (1.1,1.6) {\color{red} attack begins};
     \draw[red,->] (2,1.6) -- (2.2,1.6);
 
-    \draw[fill=green,draw opacity=0,fill opacity=0.05] (0,0.3) -- (8.20,0.3) -- (8.20,1.95) -- (0,1.95);
-    \draw[dashed,darkgreen] (0,0.3) -- (8.2,0.3);
-    \draw[dashed,darkgreen] (8.2,1.95) -- (0,1.95);
-
-    \node at (4.25,0.5) {\color{darkgreen} safe operating range};
 
     %\node at (
     \end{tikzpicture}
@@ -527,10 +538,6 @@ This paper shows through numerical results that the current power system monitor
 
 \draw[dotted,thick] (-3.95,1.9) -- (-4.1,3.6);
 \draw[dotted,thick] (-2.75,1.9) -- (4.1,3.6);
-
-\node[draw=red,fill=red,fill opacity=0.05,circle,minimum width=1.5cm] (8) at (0.25,1.6) {};
-\node[draw=red,fill=red,fill opacity=0.05,circle,minimum width=1.5cm] (3) at (3.5,1.25) {};
-\draw[red,thick,->] (8) to[out=20,in=120] (3);
 
 \end{tikzpicture}
 \caption{
@@ -629,9 +636,9 @@ As shown in Figure \ref{fig:example},
 an attack in one portion of the power system can cause instability throughout the power system.
 These destabilizing attacks can affect both generation and load sectors.
 On the generation side, the attack might compromise the generator governor controller directly or the generator's sensors and communications systems.
-(See \cite{Pasqualetti2012, Demarco1996} for more details.)
+(See \cite{Demarco1996, Pasqualetti2012} for more details.)
 On the load side, the attack might compromise the direct or indirect load control mechanisms, e.g., in demand response programs, or their associated sensors, or command signals.
-(See \cite{Mohsenian-Rad2010, Marnerides2014, amini2015dynamic} for more details.)
+(See \cite{amini2015dynamic, Marnerides2014, Mohsenian-Rad2010} for more details.)
 In either case, the attacker's goal is to insert positive feedback into the system.
 
 We model a destabilizing attack by decomposing the control input vector $\uu$ as
@@ -688,12 +695,10 @@ We model the proportional controller input vector as
 %but $A^p$ is allowed to vary over time.
 %In this scheme, the compromised load vector can be decomposed as
 %Since our proportional controller is frequency responsive, we can decompose the $A^p$ matrix as
-where
+where $\uu^p$ is the constant term for the proportional controller and
 \begin{equation}
 A^p =
 \begin{bmatrix}
-%0 & 0 & 0
-%\\
 0 & 0 & -(D^L)^{-1}K^{LG}
 \\
 0 & 0 & 0
@@ -713,7 +718,8 @@ Substituting \eqref{eq:pos} and \eqref{eq:una} into \eqref{sys:norm} gives us ou
 .
 \end{aligned}
 \end{equation}
-The attack will be destabilizing if the maximum eigenvalue of $(A+BA^p)$ is greater than 1.
+%The attack will be destabilizing if the eigenvalue of $(A+BA^p)$ is greater than 1.
+The attack will be destabilizing if the matrix $(A+BA^p)$ has an eigenvalue whose absolute value is greater than 1.
 
 Detecting the presence of an attack is not difficult.
 It can be done by monitoring only a few state variables \cite{amini2015dynamic}.
@@ -731,7 +737,7 @@ These state measurements are widely available in existing modern power systems t
 
 Our attack identification procedure has two steps.
 First we estimate the $K^{LG}$ matrix using \emph{dual state estimation}.
-This is a standard technique that applies the Unscented Kalman Filter (UKF) \cite{wan2000unscented} to simultaneously estimate the entries of matrix $K^{LG}$ and the system states $\x$.
+This is a standard technique that applies the unscented Kalman filter (UKF) \cite{wan2000unscented} to simultaneously estimate the entries of matrix $K^{LG}$ and the system states $\x$.
 Unfortunately, the standard application of this technique does not work well for our problem.
 It is too slow computationally and has poor accuracy.
 So we introduce a novel rank-1 approximation which lets us effectively apply dual state estimation to our problem.
@@ -814,7 +820,7 @@ A standard technique for modeling unobserved inputs is to replace them with rand
 %In particular, we assume $\uu^n_t\sim\normal{0}{Q^n}$, $\uu^a_t\sim\normal{0}{Q^a}$, and $\uu^m_t\sim\normal{0}{Q^m}$.
 The true distribution of these random errors is unknown,
 but for computational convenience we assume they are normally distributed.
-In particular, we assume each control input is a centered Gaussian with covariance $Q^n$, $Q^a$, and $Q^m$ respectively.
+In particular, we assume the control inputs are zero-mean Gaussians with covariance $Q^n$, $Q^a$, and $Q^m$ respectively.
 %This assumption is justified experimentally in Section \ref{sec:sim}.
 %We conduct experiments where $\uu^a_t$ and $\uu^m_t$ are highly non-normal,
 %but we still get reasonable results.
@@ -866,7 +872,7 @@ The number of parameters we are trying to estimate (i.e. the number of entries i
 but the size of the observed data (i.e. the size of $\x$) grows at the slower rate of $O(\ell + g)$.
 In general, underspecified problems are difficult to solve without introducing additional statistical assumptions.
 As the size of the power grid increases, the degree of underspecification increases,
-so we would expect this method to have lower accuracy.
+so we would expect this method to have low accuracy on large grids.
 The second problem is computational.
 At each time step,
 the UKF takes the inverse of a matrix whose dimension depends on the number of state variables.
@@ -876,6 +882,7 @@ This poor scaling makes the standard method impractical to run on power systems 
 These limitations of the standard method motivate our proposed rank-1 method, which we describe next.
 
 \subsection{The rank-1 method}
+\label{sec:rank}
 
 In this method, we assume that the $K^{LG}$ matrix has rank 1.
 We justify this assumption as follows.
@@ -888,7 +895,7 @@ Specifically, we have
 \begin{equation}
 \text{Rank} \{ K_t^{LG} \} \leq \text{Non-zero entries in $K_t^{LG}$}.
 \end{equation}
-Therefore, assuming that $K^{LG}$ has low rank is equivalent to assuming that there are a small number of compromised buses.
+Therefore, assuming that there are a small number of compromised buses is equivalent to assuming that $K^{LG}$ has low rank.
 
 Specifically, we assume that
 \begin{equation}
@@ -904,7 +911,7 @@ Under this assumption, we can rewrite the standard method's dynamics from $\eqre
 \end{bmatrix}
 =
 \begin{bmatrix}
-sA + sA^p_t + I & 0 & 0\\
+sA + sBA^p_t + I & 0 & 0\\
 0 & I & 0\\
 0 & 0 & I
 \end{bmatrix}
@@ -932,9 +939,20 @@ sA + sA^p_t + I & 0 & 0\\
 \end{equation}
 where
 \begin{align*}
-  \epsilon &\sim \normal{0}{B(Q+Q^p)+Q^\epsilon},
+  \epsilon &\sim \normal{0}{B(Q^n+Q^p)+Q^\epsilon},
 \\\epsilon_1 &\sim\normal{0}{Q^m+Q^{\epsilon_1}},
-\\\epsilon_2 &\sim\normal{0}{Q^m+Q^{\epsilon_2}}.
+\\\epsilon_2 &\sim\normal{0}{Q^m+Q^{\epsilon_2}},
+\end{align*}
+and the new attack matrix is
+\begin{align*}
+%\\
+A^p_t =
+\begin{bmatrix}
+0 & \!\!0 & -(D^L)^{-1}\trans\kL_t\kG_t
+\\
+0 & \!\!0 & \!\!0
+\end{bmatrix}
+.
 \end{align*}
 This system remains nonlinear and is solved using the UKF.
 
@@ -952,7 +970,7 @@ This is much faster than the $O((\ell g)^3)$ required for the standard method.
 
 \subsection{Thresholding}
 
-Once matrix $K^{LG}$ is estimated,
+Once the matrix $K^{LG}$ is estimated,
 we apply a thresholding procedure to identify the attack.
 %Our goal based on the three cases for the entries of matrix $K^{LG}$ that we distinguished in Section III.
 Define the function
@@ -960,7 +978,7 @@ Define the function
 f_t(i) = \sum_{j=1}^n {K^{LG}_t}{(i,j)}
 \end{equation}
  to be the sum of the entries in the $i$th row of the $K^{LG}_t$ matrix.
-This value is the total predicted attack happening on the $i$th bus in the power grid.
+This value is the total predicted attack on the $i$th bus in the power grid.
 Also define
 \begin{equation}
 \alpha_t=\argmax_i |f_t(i)|
@@ -1013,12 +1031,12 @@ At this point, the system operator can take defensive measures such as isolating
 %}
 \section{Connection to previous methods}
 
-Recall from Section I that destabilizing attacks in power systems can be detected using an FFT-based method applied to the system state variables, as explained in \cite{amini2015detecting}. A destabilizing attack will introduce new frequencies into the FFT that are not present during normal operation. Whenever these frequencies exceed a pre-specified threshold, we say an attack is happening.
+Recall from Section I that destabilizing attacks in power systems can be detected using an FFT-based method applied to the system state variables, as explained in \cite{amini2015detecting}. A destabilizing attack will introduce new frequencies that are not present during normal operation. Whenever these frequencies exceed a pre-specified threshold, we say an attack is happening.
 One can apply the same type of FFT-based method directly to the input measurements in a power system, i.e., to $\uu_t=\uu_t^n + A^p_t\x_t + \uu^p_t$, to also identify the attack. However, this is not a desirable approach in practice due to several reasons, as we explain next.
 
 First, unlike the state variables that are measured using advanced sensors such as PMUs at high resolutions, e.g., at 60 to 120 samples per second, the input signals, i.e., the load and generation levels, are metered at low resolutions, e.g., once every one to 15 minutes. These low resolution measurements do not allow observing the new frequencies that would be present, e.g., at 0.26 Hz \cite{amini2015detecting}, under an attack.
 
-Second, even if we use the high resolution state variable data from PMUs, combine it with an unknown input observer (UIO) method, and then estimate the input signals at high resolutions, we would still have various issues such as the following: (i) the high computation complexity in implementing the UIO method; (ii) the high computational complexity in implementing the FFT method to each and every entry of the estimated input signal; (iii) the inherent weakness of the FFT-based methods in distinguishing destabilizing attacks, i.e., load or generation control loops that are malicious and based on positive feedback, from the many load and generation control loops that exist in a power system that are benign and based on negative feedback, c.f. \cite{amini2015detecting}.
+Second, even if we use the high resolution state variable data from PMUs, combine it with an unknown input observer (UIO) method, and then estimate the input signals at high resolutions, we would still have three problems: (i) the high computational cost of the UIO method; (ii) the high computational cost of applying the FFT method to each entry of the estimated input signal; (iii) the inherent weakness of FFT-based methods in distinguishing destabilizing attacks, i.e., load or generation control loops that are malicious and based on positive feedback, from the many load and generation control loops that exist in a power system that are benign and based on negative feedback, c.f. \cite{amini2015detecting}.
 
 %In the previous section, we formulated our method as a dual state estimation problem. In this section, we show how our method can also be seen as a simplification of a previous technique we call the UIO/FFT method, which is an extension of the FFT method \cite{amini2015dynamic,amini2015detecting}.
 
@@ -1048,12 +1066,14 @@ One of our contributions in this paper is to observe that the $A^p_t$ matrix con
 In fact, the FFT step necessarily loses some of the information contained within $A^p_t$.
 The FFT method is only able to detect the presence of frequency dependent loads or generators;
 it cannot identify either the sign or the magnitude of the feedback.
-Direct inspection of the $A^p_t$ method, on the other hand gives us both.
+Direct inspection of the $A^p_t$ method, on the other hand, gives us both.
 
 \section{Simulation Results}
 \label{sec:sim}
 
-In this section we compare the performance of the proposed method in Section \ref{sec:method}, which works based on a simplified rank-1 implementation of the UKF, with a baseline approach that similarly applies the UKF to estimate matrix $K^{LG}$ but it does not take the two reformulation steps that we proposed in Section \ref{sec:method}. We refer to the latter method as the \emph{standard} method. In this section, we show that compared to the standard method, our proposed method can:
+In this section we compare the performance of the proposed method in Section \ref{sec:method} with a baseline approach that does not apply the rank-1 assumption from Section \ref{sec:rank}.
+We refer to the latter method as the \emph{standard} method.
+In this section, we show that compared to the standard method, our proposed method can:
 \begin{enumerate}
 %(\emph{i})
 \item
@@ -1146,7 +1166,7 @@ and then conclude with a quantitative demonstration.
 \end{figure*}
 
 All experiments in this section use a single randomly generated power grid with 20 generator and 20 load buses.
-We test on this relatively small grid size because the standard method estimates a full rank $K^{LG}$ matrix cannot scale to larger problems.
+We test on this relatively small grid size because the standard method that estimates a full rank $K^{LG}$ matrix cannot scale to larger problems.
 On this size problem, a single iteration of our rank-1 method takes about 1 second,
 and a single iteration of the standard method takes about 1 minute.
 On a problem with 100 generators and 100 loads,
@@ -1171,7 +1191,6 @@ ensuring that the attack destabilizes the system.
 Figure $\ref{fig:destab}$ shows the results.
 The proposed method clearly has better qualitative performance on this particular problem. Specifically, it identifies the compromised buses faster and more accurately.
 
-
 To look carefully into how our proposed method can differentiate between benign and malicious loads, next we randomly selected a load $i$ and generator $j$, then set the $i$th row and $j$th column of ${K^{LG}}$ to $-10$.
 Recall that negative values of the $K^{LG}$ matrix correspond to benign loads.
 The results are shown in Figure \ref{fig:neg}.
@@ -1182,7 +1201,7 @@ The standard method (not shown) has difficulty with this problem as it takes muc
 \begin{figure}
 \begin{tikzpicture}
 \small
-\node at (0,0) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=8cm,height=4.5cm]{img/406-clusterSmallWorld-20-addUniform-40-spikeNeg-gaussian-Unobserved-rank1-ukf-Xhat}};
+\node at (0,-0.25) {\includegraphics[trim={6.5cm 1cm 5cm 1cm},clip,width=8cm,height=4cm]{img/406-clusterSmallWorld-20-addUniform-40-spikeNeg-gaussian-Unobserved-rank1-ukf-Xhat}};
 \node at (-0.35,-2.95) {simulation time (sec)};
 \node at (-4.5,0) {\rotatebox{90}{$f_i(t)$}};
 
@@ -1192,11 +1211,11 @@ The standard method (not shown) has difficulty with this problem as it takes muc
 \node at (1.35,-2.5) {1.5};
 \node at (3.05,-2.5) {2.0};
 
-\node at (-1.75,-1.8) {\color{darkgray}responsive load added};
-\draw[->,darkgray] (-3.25,-1.75) -- (-3.5,-1.75);
+\node at (-1.75,-1.9) {\color{darkgray}responsive load added};
+\draw[->,darkgray] (-3.25,-1.85) -- (-3.5,-1.85);
 
-\node at (1,-0.8) {\color{red}bus with responsive load};
-\node at (-1,1.8) {\color{darkgreen}buses with normal loads};
+\node at (1,-0.9) {\color{red}bus with responsive load};
+\node at (-1,1.4) {\color{darkgreen}buses with normal loads};
 
 \end{tikzpicture}
 \caption{
