@@ -1,0 +1,128 @@
+\begin{frame}{Naive solution: joint estimation with the UKF}
+
+Augment our system dynamics
+\begin{equation*}
+\x_{t+1} = (A+BA^p)\x_t + B(\uu_t^n+\uu_t^p) + \epsilon
+%\x_{t+1} = (\timestep A+sBA^p+I)\x_t + \timestep B(\uu_t^n+\uu_t^p) + \epsilon
+\end{equation*}
+to include the new state variables
+\begin{equation*}
+\label{eq:aug}
+\begin{aligned}
+\begin{split}
+\begin{bmatrix}
+\x_{t+1} \\
+\vectorize K^{LG}_{t+1}
+\end{bmatrix}
+&=
+\begin{bmatrix}
+A + BA^p_t & 0 \\
+%sA + sBA^p_t + I & 0 \\
+0 & I
+\end{bmatrix}
+\begin{bmatrix}
+\x_t \\
+\vectorize K^{LG}_t
+\end{bmatrix}
+%\\&~~~~~~~~~~+
++
+\begin{bmatrix}
+B & 0\\
+%sB & 0\\
+0 & I
+\end{bmatrix}
+\begin{bmatrix}
+\uu_t^n + \uu_t^p \\
+\uu^{LG}_t
+\end{bmatrix}
++
+\begin{bmatrix}
+\epsilon \\
+\epsilon^{LG}
+\end{bmatrix}
+\end{split}
+.
+\end{aligned}
+\end{equation*}
+
+The resulting system is nonlinear.
+
+We solve it with the Unscented Kalman Filter (UKF).
+
+\noindent\rule[0.5ex]{\linewidth}{1pt}
+\pause
+
+Note that:
+\begin{itemize}
+\item $\x$ has $O(\ell+g)$ components (size of original problem)
+\item $K^{LG}$ has $O(\ell g)$ components (size of new problem)
+\end{itemize}
+
+\pause
+Disadvantages of new problem:
+\begin{itemize}
+\item Computational cost is $O((\ell g)^3)$, much worse than $O((\ell+g)^3)$
+\item Not enough data for statistical efficiency
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Our solution: joint estimation with rank-1 UKF}
+Assume that $K^{LG}$ has rank 1:
+\begin{equation*}
+K^{LG}_t=\kL_t\trans{\kG}_{t}.
+\end{equation*}
+This is reasonable because there will typically be few attacks.
+
+Then the system dynamics become
+\begin{equation*}
+\begin{bmatrix}
+\x_{t+1} \\
+\kL_{t+1} \\
+\kG_{t+1} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+A + BA^p_t & 0 & 0\\
+%sA + sBA^p_t + I & 0 & 0\\
+0 & I & 0\\
+0 & 0 & I
+\end{bmatrix}
+\begin{bmatrix}
+\x_t \\
+\kL_{t} \\
+\kG_{t} \\
+\end{bmatrix}
++
+\begin{bmatrix}
+B & 0 & 0\\
+%sB & 0 & 0\\
+0 & I & 0\\
+0 & 0 & I\\
+\end{bmatrix}
+\begin{bmatrix}
+\uu_t^n + \uu_t^p \\
+\uu^L_t \\
+\uu^G_t
+\end{bmatrix}
++
+\begin{bmatrix}
+\epsilon \\
+\epsilon^K \\
+\epsilon^L
+\end{bmatrix}
+.
+\end{equation*}
+Solve the system using the UKF.
+
+\noindent\rule[0.5ex]{\linewidth}{1pt}
+\pause
+
+Note that:
+\begin{itemize}
+\item The size of the new state space is $O(\ell+g)$
+\item Computationally and statistically efficient
+\end{itemize}
+
+\end{frame}

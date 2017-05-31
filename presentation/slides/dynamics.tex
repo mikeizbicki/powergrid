@@ -1,0 +1,67 @@
+\begin{frame}{System dynamics under normal conditions}
+With $g$ generators and $\ell$ loads, model the power grid as:
+\begin{equation}
+\label{eq:discrete}
+\x_{t+1} = A\x_t + B\uu_t + \epsilon.
+%\x_{t+1} = (\timestep A+I)\x_t + \timestep B\uu_t + \epsilon.
+%\x_{t+1} = (\timestep A+sBA^p_t+I)\x_t + \timestep B(\uu_t^n+\uu_t^p) + \epsilon.
+\end{equation}
+where
+\begin{align*}
+\x &= 
+\text{vector of}
+\begin{cases}
+\text{$g$ generator voltage phase angles} \\
+\text{$g$ generator rotor angular frequency deviation} \\
+\text{$\ell$ load voltage phase angles} \\
+\end{cases} \\
+\uu &= \text{vector of} 
+\begin{cases}
+\text{$g$ power generation at all generator buses} \\
+\text{$\ell$ power consumption at all load buses} \\
+\end{cases}\\
+%\timestep &= \text{step size in seconds} \\
+A,B &= \text{highly structured matrices that depend on the grid's connectivity} \\
+\epsilon &\sim \mathcal{N}(0,Q) \text{~captures modeling and measurement errors} \\
+\end{align*}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{System dynamics under attack}
+Decompose the control into normal $(\uu^n)$ and attack $(\uu^a)$ components:
+\begin{equation}
+\uu = \uu^n + \uu^a.
+\end{equation}
+Assume the attacker uses a proportional controller
+\begin{equation}
+\uu^a = A^p\x + \uu^p,
+%\end{equation}
+\text{~~~~~where~~~~~}
+%\begin{equation}
+A^p =
+\begin{bmatrix}
+0 & 0 & -(D^L)^{-1}K^{LG}
+\\
+0 & 0 & 0
+\end{bmatrix}
+.
+\end{equation}
+$D^L$ matrix of load damping coefficients (determined by power system).
+$K^{LG}_{\ell,g}$ is the gain from the load $\ell$ to generator $g$ (determined by attacker).
+
+\noindent\rule[0.5ex]{\linewidth}{1pt}
+\pause
+
+Substituting into the system dynamics gives
+\begin{equation}
+\x_{t+1} = (A+BA^p)\x_t + B(\uu_t^n+\uu_t^p) + \epsilon.
+%\x_{t+1} = (\timestep A+sBA^p+I)\x_t + \timestep B(\uu_t^n+\uu_t^p) + \epsilon.
+\end{equation}
+\textbf{Our goal:} estimate the $A^p$ matrix given a trajectory of $\x$s.
+
+This tells us which load bus has positive feedback from which generator.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

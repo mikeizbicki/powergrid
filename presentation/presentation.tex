@@ -1,0 +1,163 @@
+\documentclass{beamer}
+% \usetheme{default}
+\usetheme{Boadilla}
+\usepackage[utf8x]{inputenc}
+\usepackage{default}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,graphicx,xcolor,ifthen}
+\usepackage{algorithm,listings}
+\usepackage{algorithmicx,algpseudocode}
+\usepackage{multirow,array,lscape,chngpage,rotating}
+\usepackage{colortbl,calc,fp}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{snakes,patterns,shapes,calc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\vectorize}{vec}
+
+\newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left({{#1}},{{#2}}\right)}}
+\newcommand{\trans}[1]{\ensuremath{{#1}^{\mathsf{T}}}}
+
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\bb}{\mathbf{k}}
+\newcommand{\kL}{\mathbf{k}^L}
+\newcommand{\kG}{\mathbf{k}^G}
+%\newcommand{\uu^m}{\mathbf{w}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\timestep}{s}
+
+\newcommand{\fixme}[1]{\textbf{FIXME: {#1}}}
+\newcommand{\new}[1]{\color{red} {#1}}
+
+\definecolor{darkgreen}{RGB}{0,127,0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author {Mike Izbicki}
+\institute{UC Riverside}
+\title[Identifying Attacks in Power Systems]{}
+
+\newcommand \imgpath[1]{/home/user/docs/phd/presentation_lib/{#1}}
+
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Outline for section \thesection}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\beamertemplatenavigationsymbolsempty
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\begin{center}
+\Huge
+Identification of Destabilizing Attacks 
+in Power Systems
+\end{center}
+
+\vspace{0.5in}
+\begin{center}
+\textbf{Mike Izbicki}, Sajjad Amini, Christian R. Shelton, Hamed Mohsenian-Rad
+
+UC Riverside
+\end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{slides/motivation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Outline}
+\Large
+\begin{itemize}
+\item Power system dynamics
+\begin{itemize}
+\Large
+\item Normal operation
+\item Under attack
+\end{itemize}
+
+\vspace{0.15in}
+\item Identifying the attack 
+\begin{itemize}
+\Large
+\item Unscented Kalman Filter (UKF)
+\item Joint state and variable estimation
+
+\vspace{0.075in}
+\item Rank-1 approximate filter (our contribution)
+\begin{itemize}
+\Large
+\item Reduces computational complexity
+\item Improves statistical efficiency
+\end{itemize}
+\end{itemize}
+
+\vspace{0.15in}
+\item Simulation results
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{slides/dynamics}
+\include{slides/soln}
+\include{slides/results}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Summary}
+\Large
+\begin{itemize}
+\item Previous methods could only detect attacks
+
+\vspace{0.15in}
+\item New method for identifying system buses under attack
+\vspace{-0.15in}
+\begin{itemize}
+\Large
+\item joint estimation of system and attack parameters
+\item solve with the Unscented Kalman Filter (UKF)
+\end{itemize}
+
+\vspace{0.15in}
+\item Used a rank-1 approximation 
+\begin{itemize}
+\Large
+\item better statistical efficiency
+\item better computational efficiency
+\end{itemize}
+\end{itemize}
+
+%\vspace{0.1in}
+\begin{center}
+\texttt{http://github.com/mikeizbicki/powergrid}
+\end{center}
+
+\pause
+\begin{center}
+{
+\Huge
+Questions?
+}
+\end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+
